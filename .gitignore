@@ -29,3 +29,5 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 jquery.odata/script/jquery-1.4.2-vsdoc.js
 jquery.odata/script/jquery-1.4.2.js
+jquery.odata/tests/css/qunit.css
+jquery.odata/tests/script/qunit.js

@@ -1,0 +1,61 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>jQuery.OData Unittests</title>
+    <script type="text/javascript" src="../script/jquery-1.4.2.js"></script>
+    <script type="text/javascript" src="../script/jquery.odata.js"></script>
+    <link rel="stylesheet" href="css/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="script/qunit.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            test("create odata object, test for valid serviceRootURI", function () {
+                var odata = $.odata("http://services.odata.org/OData/OData.svc/");
+                equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
+                equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
+
+                odata = $.odata("//http://services.odata.org/OData/OData.svc///");
+                equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
+                equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
+
+                odata = $.odata("  //  http://services.odata.org/OData/OData.svc ///    ");
+                equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
+                equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
+
+                // this case is unhandled for now
+                //odata = $.odata("  //  /http://services.odata.org/OData/OData.svc/ ///    ");
+                //equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
+                //equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
+            });
+
+            test("create odata query object, test for valid resourcePath", function () {
+                var odata = $.odata("http://services.odata.org/OData/OData.svc/"),
+                    q;
+                q = odata.from("Categories(1)");
+                equals(q.resourcePath.charAt(q.resourcePath.length - 1), ')', "expected a ')' at the end of resourcePath.");
+                equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+
+                q = odata.from("Categories(1)/Name");
+                equals(q.resourcePath.charAt(q.resourcePath.length - 1), 'e', "expected a 'n' at the end of resourcePath.");
+                equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+
+                q = odata.from("/Categories(1)/Name/");
+                equals(q.resourcePath.charAt(q.resourcePath.length - 1), 'e', "expected a 'n' at the end of resourcePath.");
+                equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+
+                q = odata.from("/  Categories(1)/Name//  ");
+                equals(q.resourcePath.charAt(q.resourcePath.length - 1), 'e', "expected a 'n' at the end of resourcePath.");
+                equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+            });
+
+        });       
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">jQuery.OData Unittests</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests">
+    </ol>
+</body>
+</html>

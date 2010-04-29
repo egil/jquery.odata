@@ -50,6 +50,14 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="examples\example1.js" />
+    <Content Include="script\jquery-1.4.2-vsdoc.js" />
+    <Content Include="script\jquery-1.4.2.js" />
+    <Content Include="script\jquery.odata.js" />
+    <Content Include="tester.html" />
+    <Content Include="tests\css\qunit.css" />
+    <Content Include="tests\script\qunit.js" />
+    <Content Include="tests\unittests.html" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
