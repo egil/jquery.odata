@@ -23,7 +23,7 @@ queryObject1.select(function (data) { });
 queryObject1.count(function (count) { });
 
 // Question: Should this be the way to select the number of entities in a collection?
-//           Alternativly, many use a overloaded queryObject.select('value', callback fn) call?
+//           Alternativly, many use a overloaded queryObject.select('value', callback fn) call? 
 queryObject1.value(function (value) { });
 
 // calling service operations works like calling any other entity

@@ -2,104 +2,248 @@
 "use strict";
 (function ($) {
     var trimSlashes,
-        trim;
+        trimRightSlashes,
+        trim,
+        serviceCall,
+        uriBuilder,
+        odata,
+        from,
+        count,
+        value,
+        params,
+        query;
 
-    // use buildin String.trim function if one is available, otherwise use homegrown...
-    if (typeof String.trim === 'function') {
-        trim = String.trim;
-    }
-    else {
-        trim = function (str) {
-            return str.replace(/^\s+|\s+$/g, '');
-        };
-    }
+    // use buildin String.trim function if one is available, otherwise use jQuery.trim.
+    trim = typeof String.trim === 'function' ? String.trim : jQuery.trim;
 
+    // trims slashes away from begining and end of string.
     trimSlashes = function (str) {
         return str.replace(/^\/+|\/+$/g, '');
     };
+    // trims slashes away from the end of the string.
+    trimRightSlashes = function (str) {
+        return str.replace(/\/+$/g, '');
+    };
 
-    // HACK: remove before publish. Enables VS2010 js intellisense
+    // HACK: remove before publish. Enables VS2010 jQuery intellisense in closure.
     $ = jQuery;
 
-    $.odata = function (serviceRootURI) {
+    odata = function (serviceRootURI, options) {
         ///	<summary>
         ///		Create a new OData object that can be used to query against
         ///     the specified service root URI.
         ///	</summary>
-        ///	<returns type="OData" />
+        ///	<returns type="odata" />
         ///	<param name="serviceRootURI" type="String">
         ///		The service root URI of a OData service.
         ///	</param>
+        var that, settings;
 
-        var odata, from;
+        // extend settings with options.
+        settings = jQuery.extend({
+            protocol: 'json'
+        }, options);
 
         // constructs the odata object and assign data to it
-        odata = {};
+        that = {};
 
-        odata.serviceRootURI = trim(trimSlashes(trim(serviceRootURI)));
+        // trim and remove slashes from end of serviceRootURI.
+        that.serviceRootURI = trimRightSlashes(trim(serviceRootURI));
+        that.settings = settings;
+        that.from = from;
 
-        from = function (resourcePath) {
-            ///	<summary>
-            ///		Create a new OData Query object that defines a new query
-            ///     which can be used to query against the OData service root URI.
-            ///	</summary>
-            ///	<returns type="QueryObject" />
-            ///	<param name="resourcePath" type="String">
-            ///		The resource path to query on the OData service.
-            ///	</param>
-            var that, count, value, query;
-
-            count = function (completed, options) {
-                ///	<summary>
-                ///		Retrives the number of entries associated resource path.
-                ///	</summary>
-                ///	<param name="completed" type="Function">
-                ///		Function to call with the return value.
-                ///	</param>                    
-                var x = $.extend(this, { type: 'count' }, options);
-                query(completed, x);
-            };
-
-            value = function (completed, options) {
-                ///	<summary>
-                ///		Retrives the "raw value" of the specified property
-                ///	</summary>
-                ///	<param name="completed" type="Function">
-                ///		Function to call with the return value.
-                ///	</param>
-                var x = $.extend(this, { type: 'value' }, options);
-                query(completed, x);
-            };
-
-            query = function (completed, options) {
-                
-
-                $.ajax({
-                    beforeSend: function (xhr) {
-                        // this function is not called when dataType = jsonp
-                        // tweak headers according to specs
-                        var x;
-                    },
-                    dataType: "jsonp",
-                    global: false, 
-                    type: "GET",
-                    url: options.serviceRootURI + '/' + options.resourcePath + '/$count',
-                    success: completed
-                });
-            };
-
-            that = $.extend({}, this);
-            that.resourcePath = trim(trimSlashes(trim(resourcePath)));
-            that.value = value;
-            that.count = count;
-            that.query = query;
-
-            return that;
-        };
-
-        odata.from = from;
-
-        return odata;
+        return that;
     };
 
+    from = function (resourcePath) {
+        ///	<summary>
+        ///		Create a new OData Query object that defines a new query
+        ///     which can be used to query against the OData service root URI.
+        ///	</summary>
+        ///	<returns type="from" />
+        ///	<param name="resourcePath" type="String">
+        ///		The resource path to query on the OData service.
+        ///	</param>
+        var that;
+
+        // create OData Query object
+        that = $.extend({}, this);
+
+        // trim and remove both slashes from both start and end of resourcePath.
+        that.resourcePath = trimSlashes(trim(resourcePath));
+
+        // add options object
+        that.options = {};
+
+        // remove "from" function
+        delete that.from;
+
+        // add methods
+        that.value = value;
+        that.count = count;
+        that.query = query;
+        that.params = params;
+
+        return that;
+    };
+
+    params = function (params) {
+        ///	<summary>
+        ///		Assign Service Operations parameters to this OData Query object.
+        ///	</summary>
+        ///	<returns type="from" />
+        ///	<param name="params" type="Object">
+        ///		Argument must be in the form of an object.
+        ///	</param>                
+        var that;
+
+        // create OData Query object
+        that = $.extend({}, this);
+
+        // add params to query options object
+        that.options = $.extend(true, that.options, { params: params });
+
+        return that;
+    };
+
+    count = function () {
+        ///	<summary>
+        ///		Retrives the number of entries associated resource path.
+        ///	</summary>
+        ///	<param name="completed" type="Function">
+        ///		Function to call with the return value.
+        ///	</param>        
+        var that;
+
+        // create new OData Query object
+        that = $.extend({}, this);
+
+        // add count query string to query options object
+        that.options = $.extend({}, that.options, { count: '$count' });
+
+        // execute the query
+        query.apply(that);
+    };
+
+    value = function () {
+        ///	<summary>
+        ///		Retrives the "raw value" of the specified property
+        ///	</summary>
+        ///	<param name="completed" type="Function">
+        ///		Function to call with the return value.
+        ///	</param>
+        var that;
+
+        // create new OData Query object
+        that = $.extend({}, this);
+
+        // add value query string to query options object
+        that.options = $.extend({}, that.options, { value: '$value' });
+
+        // execute the query
+        query.apply(that);
+    };
+
+    query = function (options) {
+        ///	<summary>
+        ///		Queries the OData service.
+        ///	</summary>
+        serviceCall(this, options);
+    };
+
+    uriBuilder = function (query) {
+        var uri, p, pp;
+        // base
+        uri = query.serviceRootURI + '/' + query.resourcePath;
+
+        // add count if specified
+        if (query.options.count !== undefined) {
+            uri += '/' + query.options.count;
+            return uri;
+        }
+
+        // add count if specified
+        if (query.options.value !== undefined) {
+            uri += '/' + query.options.value;
+            return uri;
+        }
+
+        // add service operations params
+        if (query.options.params !== undefined) {
+            pp = '';
+            for (p in query.options.params) {
+                // skip undefined entries
+                if(p === undefined) continue;
+                
+                // todo: test how this handles different datatypes such as datetime
+                // http://www.odata.org/developers/protocols/overview#AbstractTypeSystem
+                if(typeof query.options.params[p] === 'string')
+                    pp += p + "='" + query.options.params[p] + "'";
+                else
+                    pp += p + "=" + query.options.params[p];
+            }
+            if (pp.length > 0) {
+                uri += '?' + pp;
+            }
+        }
+
+        // specify ?$format=json in url if retriving json, 
+        // i.e. not $count or $value.
+        if (query.settings.protocol === 'jsonp') {
+            uri += '?$format=json';
+        }
+
+        return uri;
+    };
+
+    serviceCall = function (query, options) {
+        var opt = query.options,
+            settings,
+            uri;
+
+        // extend settings with options.
+        settings = jQuery.extend({
+            protocol: query.settings.protocol
+        }, options);
+
+        // select dataType based on query
+        if (settings.protocol !== 'jsonp') {
+            if (opt.value !== undefined) {
+                settings.protocol = '*/*';
+            } else if (opt.count !== undefined) {
+                settings.protocol = 'text';
+            }
+        }
+
+        // todo: actually handle jsonp calls probably
+        $.ajax({
+            beforeSend: function (xhr) {
+                // note: this function is not called when dataType = jsonp
+
+                // Tell service we understand DataServiceVersion 2.0
+                xhr.setRequestHeader('MaxDataServiceVersion', '2.0');
+
+                // DataServiceVersion must be 2.0 if using
+                // $count or $select query options
+                if (opt.count === undefined && opt.select === undefined) {
+                    xhr.setRequestHeader('DataServiceVersion', '1.0');
+                }
+                else {
+                    xhr.setRequestHeader('DataServiceVersion', '2.0');
+                }
+            },
+            dataFilter: function (data) {
+
+            },
+            dataType: settings.protocol,
+            global: false,
+            type: "GET",
+            url: uriBuilder(query),
+            success: function (data) {
+                console.log(data);
+            }
+        });
+    };
+
+    $.odata = odata;
 } (jQuery));

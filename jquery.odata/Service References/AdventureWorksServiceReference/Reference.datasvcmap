@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="bae7027a-dc47-44f5-8864-65f1ce40bae6" xmlns="urn:schemas-microsoft-com:xml-dataservicemap">
+  <MetadataSources>
+    <MetadataSource Address="http://localhost:32751/services/AdventureWorks.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="service.edmx" MetadataType="Edmx" ID="62b379ea-9b11-4935-8ba2-7861dc197a50" SourceId="1" SourceUrl="http://localhost:32751/services/AdventureWorks.svc" />
+  </Metadata>
+  <Extensions />
+</ReferenceGroup>
