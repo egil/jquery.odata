@@ -7,11 +7,7 @@
         serviceCall,
         uriBuilder,
         odata,
-        from,
-        count,
-        value,
-        params,
-        query;
+        odataQuery;
 
     // use buildin String.trim function if one is available, otherwise use jQuery.trim.
     trim = typeof String.trim === 'function' ? String.trim : jQuery.trim;
@@ -50,33 +46,107 @@
         // trim and remove slashes from end of serviceRootURI.
         that.serviceRootURI = trimRightSlashes(trim(serviceRootURI));
         that.settings = settings;
-        that.from = from;
+
+        that.from = function (resourcePath) {
+            ///	<summary>
+            ///		Create a new OData Query object that defines a new query
+            ///     which can be used to query against the OData service root URI.
+            ///	</summary>
+            ///	<returns type="odataQuery" />
+            ///	<param name="resourcePath" type="String">
+            ///		The resource path to query on the OData service.
+            ///	</param>    
+            return odataQuery.apply($.extend({}, this), [resourcePath]);
+        };
 
         return that;
     };
 
-    from = function (resourcePath) {
+    odataQuery = function (resourcePath) {
         ///	<summary>
         ///		Create a new OData Query object that defines a new query
         ///     which can be used to query against the OData service root URI.
         ///	</summary>
-        ///	<returns type="from" />
+        ///	<returns type="odataQuery" />
         ///	<param name="resourcePath" type="String">
         ///		The resource path to query on the OData service.
-        ///	</param>
-        var that;
+        ///	</param>    
+        var that = this,
+            value,
+            count,
+            query,
+            params;
 
-        // create OData Query object
-        that = $.extend({}, this);
+        params = function (params) {
+            ///	<summary>
+            ///		Assign Service Operations parameters to this OData Query object.
+            ///	</summary>
+            ///	<returns type="from" />
+            ///	<param name="params" type="Object">
+            ///		Argument must be in the form of an object.
+            ///	</param>                
+            var that;
+
+            // create OData Query object
+            that = $.extend({}, this);
+
+            // add params to query options object
+            that.options = $.extend(true, that.options, { params: params });
+
+            return that;
+        };
+
+
+        count = function () {
+            ///	<summary>
+            ///		Retrives the number of entries associated resource path.
+            ///	</summary>
+            ///	<param name="completed" type="Function">
+            ///		Function to call with the return value.
+            ///	</param>        
+            var that;
+
+            // create new OData Query object
+            that = $.extend({}, this);
+
+            // add count query string to query options object
+            that.options = $.extend({}, that.options, { count: '$count' });
+
+            // execute the query
+            query.apply(that);
+        };
+
+        value = function () {
+            ///	<summary>
+            ///		Retrives the "raw value" of the specified property
+            ///	</summary>
+            ///	<param name="completed" type="Function">
+            ///		Function to call with the return value.
+            ///	</param>
+            var that;
+
+            // create new OData Query object
+            that = $.extend({}, this);
+
+            // add value query string to query options object
+            that.options = $.extend({}, that.options, { value: '$value' });
+
+            // execute the query
+            query.apply(that);
+        };
+
+        query = function (options) {
+            ///	<summary>
+            ///		Queries the OData service.
+            ///	</summary>
+            serviceCall(this, options);
+        };
 
         // trim and remove both slashes from both start and end of resourcePath.
         that.resourcePath = trimSlashes(trim(resourcePath));
 
         // add options object
         that.options = {};
-
-        // remove "from" function
-        delete that.from;
 
         // add methods
         that.value = value;
@@ -86,71 +156,7 @@
 
         return that;
     };
-
-    params = function (params) {
-        ///	<summary>
-        ///		Assign Service Operations parameters to this OData Query object.
-        ///	</summary>
-        ///	<returns type="from" />
-        ///	<param name="params" type="Object">
-        ///		Argument must be in the form of an object.
-        ///	</param>                
-        var that;
-
-        // create OData Query object
-        that = $.extend({}, this);
-
-        // add params to query options object
-        that.options = $.extend(true, that.options, { params: params });
-
-        return that;
-    };
-
-    count = function () {
-        ///	<summary>
-        ///		Retrives the number of entries associated resource path.
-        ///	</summary>
-        ///	<param name="completed" type="Function">
-        ///		Function to call with the return value.
-        ///	</param>        
-        var that;
-
-        // create new OData Query object
-        that = $.extend({}, this);
-
-        // add count query string to query options object
-        that.options = $.extend({}, that.options, { count: '$count' });
-
-        // execute the query
-        query.apply(that);
-    };
-
-    value = function () {
-        ///	<summary>
-        ///		Retrives the "raw value" of the specified property
-        ///	</summary>
-        ///	<param name="completed" type="Function">
-        ///		Function to call with the return value.
-        ///	</param>
-        var that;
-
-        // create new OData Query object
-        that = $.extend({}, this);
-
-        // add value query string to query options object
-        that.options = $.extend({}, that.options, { value: '$value' });
-
-        // execute the query
-        query.apply(that);
-    };
-
-    query = function (options) {
-        ///	<summary>
-        ///		Queries the OData service.
-        ///	</summary>
-        serviceCall(this, options);
-    };
-
+    
     uriBuilder = function (query) {
         var uri, p, pp;
         // base
@@ -173,11 +179,11 @@
             pp = '';
             for (p in query.options.params) {
                 // skip undefined entries
-                if(p === undefined) continue;
-                
+                if (p === undefined) continue;
+
                 // todo: test how this handles different datatypes such as datetime
                 // http://www.odata.org/developers/protocols/overview#AbstractTypeSystem
-                if(typeof query.options.params[p] === 'string')
+                if (typeof query.options.params[p] === 'string')
                     pp += p + "='" + query.options.params[p] + "'";
                 else
                     pp += p + "=" + query.options.params[p];

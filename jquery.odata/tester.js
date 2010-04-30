@@ -13,9 +13,9 @@
         prodByColor = odata.from("GetProductsByColor");
 
     prodByColor.params({ 'color': 'Red' }).query();
-    odata.from('Add').params({ 'start': 42 }).query();    
+    odata.from('Add').params({ 'start': 42 }).query();
 
-    //    prodName.value();
-    //    prods.count();
-    //    prods.query();
+    prodName.value();
+    prods.count();
+    prods.query();
 });
