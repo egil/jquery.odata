@@ -12,7 +12,7 @@
         prodName = odata.from("Products(680)/Name"),
         prodByColor = odata.from("GetProductsByColor");
 
-    prodByColor.params({ 'color': 'Red' }).query();
+    prodByColor.params({ 'color': "'Red'" }).query();
     odata.from('Add').params({ 'start': 42 }).query();
 
     prodName.value();

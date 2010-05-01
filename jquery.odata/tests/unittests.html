@@ -12,40 +12,128 @@
             test("create odata object, test for valid serviceRootURI", function () {
                 var odata = $.odata("http://services.odata.org/OData/OData.svc/");
                 equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
-                equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
-
-                odata = $.odata("//http://services.odata.org/OData/OData.svc///");
+                equals(odata.uriBuilder(), "http://services.odata.org/OData/OData.svc/");
+                odata = $.odata("http://services.odata.org/OData/OData.svc");
                 equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
-                equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
-
-                odata = $.odata("  //  http://services.odata.org/OData/OData.svc ///    ");
-                equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
-                equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
-
-                // this case is unhandled for now
-                //odata = $.odata("  //  /http://services.odata.org/OData/OData.svc/ ///    ");
-                //equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
-                //equals(odata.serviceRootURI.charAt(0), 'h', "expected a 'h' at the beginning of serviceRootURI.");
+                equals(odata.uriBuilder(), "http://services.odata.org/OData/OData.svc/");
             });
 
-            test("create odata query object, test for valid resourcePath", function () {
-                var odata = $.odata("http://services.odata.org/OData/OData.svc/"),
-                    q;
+            test("Addressing Entries", function () {
+                var odata = $.odata("http://services.odata.org/OData/OData.svc/"), q;
+
                 q = odata.from("Categories(1)");
                 equals(q.resourcePath.charAt(q.resourcePath.length - 1), ')', "expected a ')' at the end of resourcePath.");
                 equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories(1)");
 
                 q = odata.from("Categories(1)/Name");
                 equals(q.resourcePath.charAt(q.resourcePath.length - 1), 'e', "expected a 'n' at the end of resourcePath.");
                 equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories(1)/Name");
 
                 q = odata.from("/Categories(1)/Name/");
                 equals(q.resourcePath.charAt(q.resourcePath.length - 1), 'e', "expected a 'n' at the end of resourcePath.");
                 equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories(1)/Name");
 
-                q = odata.from("/  Categories(1)/Name//  ");
-                equals(q.resourcePath.charAt(q.resourcePath.length - 1), 'e', "expected a 'n' at the end of resourcePath.");
-                equals(q.resourcePath.charAt(0), 'C', "expected a 'C' at the beginning of resourcePath.");
+                q = odata.from('Categories(1)/Products/').count(false);
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories(1)/Products/$count");
+
+                q = odata.from('Categories(1)/Products(1)/Supplier/Address/City').value(false);
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories(1)/Products(1)/Supplier/Address/City/$value");
+            });
+
+            test("Addressing Links between Entries", function () {
+                var odata = $.odata("http://services.odata.org/OData/OData.svc"), q;
+                q = odata.from("Categories(1)").links("Products");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories(1)/$links/Products");
+
+                q = odata.from("Products(1)").links("Category");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products(1)/$links/Category");
+            });
+
+            test("Addressing Service Operations", function () {
+                var odata = $.odata("http://services.odata.org/OData/OData.svc"), q;
+
+                q = odata.from("ProductColors");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/ProductColors");
+
+                q = odata.from("ProductsByColor").params({ color: "'red'" });
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/ProductsByColor?color='red'");
+
+                q = odata.from("ProductsByColor(3)/Category/Name").params({ color: "'red'" });
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/ProductsByColor(3)/Category/Name?color='red'");
+
+                q = odata.from("ProductsByColor").params({ color: "'red'", param: 'foo' });
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/ProductsByColor?color='red'&param=foo");
+
+                odata = $.odata("http://localhost:32751/services/AdventureWorks.svc");
+                q = odata.from("GetProductsByColor(706)/ProductNumber/").params({ color: "'red'" }).value(false);
+                equals(q.uriBuilder(), "http://localhost:32751/services/AdventureWorks.svc/GetProductsByColor(706)/ProductNumber/$value?color='red'");
+
+                q = odata.from("GetProductsByColor").params({ color: "'red'" }).orderby("Name");
+                equals(q.uriBuilder(), "http://localhost:32751/services/AdventureWorks.svc/GetProductsByColor?color='red'&$orderby=Name");
+            });
+
+            test("Query String Options", function () {
+                var odata = $.odata("http://services.odata.org/OData/OData.svc"), q;
+                q = odata.from("Products").orderby("Rating");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$orderby=Rating");
+
+                q = odata.from("Products").orderby("Rating asc");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$orderby=Rating asc");
+
+                q = odata.from("Products").orderby("Rating,Category/Name desc");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$orderby=Rating,Category/Name desc");
+
+                q = odata.from("Products").top(5);
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$top=5");
+
+                q = odata.from("Products").top(5).orderby("Name desc");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$top=5&$orderby=Name desc");
+
+                q = odata.from("Categories(1)/Products").skip(2);
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories(1)/Products?$skip=2");
+
+                q = odata.from("Products").skip(2).top(2).orderby("Rating");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$skip=2&$top=2&$orderby=Rating");
+                            
+                q = odata.from("Suppliers").filter("Address/City eq 'Redmond'");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Suppliers?$filter=Address/City eq 'Redmond'");
+
+                q = odata.from("Categories").expand("Products");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories?$expand=Products");                
+                
+                q = odata.from("Categories").expand("Products/Suppliers");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories?$expand=Products/Suppliers");                
+                
+                q = odata.from("Products").expand("Category,Suppliers");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$expand=Category,Suppliers");                
+
+                q = odata.from("Products").select("Price,Name");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$select=Price,Name");                
+
+                q = odata.from("Products").select("Name,Category");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$select=Name,Category");               
+                
+                q = odata.from("Categories").select("Name,Products").expand("Products/Suppliers");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Categories?$select=Name,Products&$expand=Products/Suppliers");
+
+                q = odata.from("Products").select("*");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$select=*");
+
+                q = odata.from("Products").inlinecount();
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$inlinecount=allpages");
+                
+                q = odata.from("Products").inlinecount("allpages");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$inlinecount=allpages");
+
+                q = odata.from("Products").inlinecount("none");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products");
+
+                q = odata.from("Products").inlinecount().top(10).filter("Price gt 200");
+                equals(q.uriBuilder(), "http://services.odata.org/OData/OData.svc/Products?$inlinecount=allpages&$top=10&$filter=Price gt 200");
+
             });
 
         });       
