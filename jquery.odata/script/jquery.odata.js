@@ -3,6 +3,7 @@
 (function ($) {
     var odata,
         odataQuery,
+        odataQueryResult,
     // trims slashes away from begining and end of string.
         trimSlashes = function (str) {
             return str.replace(/^\/+|\/+$/g, '');
@@ -54,6 +55,20 @@
             return odataQuery.apply($.extend({}, this), [resourcePath]);
         };
 
+        that.query = function (options) {
+            ///	<summary>
+            ///		Queries the OData service.
+            ///	</summary>
+
+            // allow users to pass in just a callback 
+            // function in case of success.
+            if ($.isFunction(options)) {
+                options = { success: options };
+            }
+
+            serviceCall(this, options);
+        };
+
         that.uriBuilder = uriBuilder;
 
         return that;
@@ -71,7 +86,6 @@
         var that = this,
             value,
             count,
-            query,
             links,
             params,
             orderby,
@@ -92,7 +106,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.links = navigationProperty;
 
             return that;
@@ -115,7 +129,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.orderby = orderbyQueryOption;
 
             return that;
@@ -133,7 +147,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.top = numberOfEntries;
 
             return that;
@@ -150,7 +164,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.skip = numberOfEntries;
 
             return that;
@@ -167,7 +181,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.filter = filter;
 
             return that;
@@ -190,7 +204,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.expand = entries;
 
             return that;
@@ -206,7 +220,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.select = properties;
 
             return that;
@@ -224,7 +238,7 @@
             inlinecount = inlinecount || "allpages";
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
             that.options.inlinecount = inlinecount;
 
             return that;
@@ -241,7 +255,7 @@
             var that;
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
 
             // add params to query options object
             that.options = $.extend(true, that.options, { params: params });
@@ -249,66 +263,64 @@
             return that;
         };
 
-        count = function (autoQuery) {
+        count = function (args) {
             ///	<summary>
             ///		Retrives the number of entries associated resource path.
             ///	</summary>
             ///	<returns type="odataQuery" />
-            ///	<param name="completed" type="Function">
-            ///		False makes method return a new odataQuery object. True retrives count imidiately. Default = true;
-            ///	</param>        
-            var that;
+            var that,
+                autoQuery = true,
+                options = args;
 
-            autoQuery = autoQuery === undefined ? true : autoQuery;
+            if (typeof args === 'boolean') {
+                autoQuery = args;
+            } else if ($.isFunction(args)) {
+                options = { success: args };
+            }
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
 
             // add count query string to query options object
             that.options = $.extend({}, that.options, { count: '$count' });
 
             if (autoQuery) {
                 // execute the query
-                query.apply(that);
+                that.query(options);
             }
             else {
                 return that;
             }
         };
 
-        value = function (autoQuery) {
+        value = function (args) {
             ///	<summary>
             ///		Retrives the "raw value" of the specified property
             ///	</summary>
             ///	<returns type="odataQuery" />
-            ///	<param name="autoQuery" type="Boolean">
-            ///		False makes method return a new odataQuery object. True retrives raw value imidiately. Default = true;
-            ///	</param>
-            var that;
+            var that,
+                autoQuery = true,
+                options = args;
 
-            autoQuery = autoQuery === undefined ? true : autoQuery;
+            if (typeof args === 'boolean') {
+                autoQuery = args;
+            } else if ($.isFunction(args)) {
+                options = { success: args };
+            }
 
             // create new OData Query object
-            that = $.extend({}, this);
+            that = $.extend(true, {}, this);
 
             // add value query string to query options object
             that.options = $.extend({}, that.options, { value: '$value' });
 
             if (autoQuery) {
                 // execute the query
-                query.apply(that);
+                that.query(options);
             }
             else {
                 return that;
             }
-        };
-
-        query = function (options) {
-            ///	<summary>
-            ///		Queries the OData service.
-            ///	</summary>
-            
-            serviceCall(this, options);
         };
 
         // trim and remove both slashes from both start and end of resourcePath.
@@ -320,7 +332,6 @@
         // add methods
         that.value = value;
         that.count = count;
-        that.query = query;
         that.params = params;
         that.orderby = orderby;
         that.top = top;
@@ -330,6 +341,18 @@
         that.select = select;
         that.links = links;
         that.inlinecount = inlinecount;
+
+        return that;
+    };
+
+    odataQueryResult = function (data, xhr, query) {
+        var that = {};
+
+        that.data = data.d === undefined ? data : data.d;
+        that.version = xhr.getResponseHeader("DataServiceVersion").replace(';', '');
+        that.ETag = xhr.getResponseHeader("ETag");
+        that.status = xhr.status;
+        that.statusText = xhr.statusText;
 
         return that;
     };
@@ -365,7 +388,6 @@
             // end of extended part of resource path
 
             // begining of query string options
-
             // if true, insert ambersand before adding next query string option
             needAmpersand = false;
 
@@ -386,6 +408,13 @@
             for (p in opt) {
                 if (p !== undefined) {
                     switch (p) {
+                        case 'inlinecount':
+                            // inlinecount === none is the same as 
+                            // not including inlinecount in query string.
+                            if (opt.inlinecount.toUpperCase() === 'NONE') {
+                                break;
+                            }
+                            // else fall through
                         case 'orderby':
                         case 'top':
                         case 'skip':
@@ -397,17 +426,6 @@
                             }
                             qopts += "$" + p + "=" + opt[p];
                             needAmpersand = true;
-                            break;
-                        case 'inlinecount':
-                            // inlinecount === none is the same as 
-                            // not including inlinecount in query string.
-                            if (opt.inlinecount.toUpperCase() !== 'NONE') {
-                                if (needAmpersand) {
-                                    qopts += '&';
-                                }
-                                qopts += "$" + p + "=" + opt[p];
-                                needAmpersand = true;
-                            }
                             break;
                     }
                 }
@@ -422,7 +440,7 @@
             qopts += '$format=json';
         }
 
-        return query.serviceRootURI + '/' + resourcePath + (qopts !== '' ? '?' + qopts : '');
+        return query.serviceRootURI + (resourcePath !== '' ? '/' + resourcePath : '') + (qopts !== '' ? '?' + qopts : '');
     };
 
     serviceCall = function (query, options) {
@@ -431,8 +449,8 @@
 
         // extend settings with options.
         settings = jQuery.extend({
-            protocol: query.settings.protocol
-        }, options);
+            type: "GET"
+        }, query.settings, options);
 
         // select dataType based on query
         if (settings.protocol !== 'jsonp') {
@@ -443,7 +461,6 @@
             }
         }
 
-        // todo: actually handle jsonp calls probably
         $.ajax({
             beforeSend: function (xhr) {
                 // note: this function is not called when dataType = jsonp
@@ -453,23 +470,49 @@
 
                 // DataServiceVersion must be 2.0 if using
                 // $count or $select query options
-                if (opt.count === undefined && opt.select === undefined) {
+                if (opt.count === undefined && opt.select === undefined && opt.inlinecount === undefined) {
                     xhr.setRequestHeader('DataServiceVersion', '1.0');
                 }
                 else {
                     xhr.setRequestHeader('DataServiceVersion', '2.0');
                 }
+
+                // call users beforeSend if specified
+                if ($.isFunction(settings.beforeSend)) {
+                    settings.beforeSend(xhr);
+                }
             },
             dataFilter: function (data) {
-
+                data = JSON.parse(data, function (key, value) {
+                    var dateTimeParts, date;
+                    if (value != null) {
+                        if (value.toString().indexOf('Date') !== -1) {
+                            // "\/Date(<ticks>["+" | "-" <offset>)\/"
+                            dateTimeParts = /^\/Date\((-?\d+)([-|+]\d+)?\)\/$/.exec(value);
+                            if (dateTimeParts) {
+                                // consider doing something with the offset part.
+                                date = new Date(parseInt(dateTimeParts[1], 10));
+                                return date;
+                            }
+                        }
+                        return value;
+                    }
+                });
+                return data;
             },
             dataType: settings.protocol,
-            global: false,
-            type: "GET",
+            password: settings.password,
+            username: settings.username,
+            timeout: settings.timeout,
+            type: settings.type,
             url: uriBuilder(query),
-            success: function (data) {
-                console.log(data);
-            }
+            success: function (data, textStatus, xhr) {
+                if ($.isFunction(settings.success)) {
+                    settings.success(odataQueryResult(data, xhr, query), textStatus, xhr);
+                }
+            },
+            complete: settings.complete,
+            error: settings.error
         });
     };
 

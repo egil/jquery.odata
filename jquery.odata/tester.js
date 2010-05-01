@@ -9,13 +9,30 @@
 
     var odata = $.odata("http://localhost:32751/services/AdventureWorks.svc/"),
         prods = odata.from("Products"),
-        prodName = odata.from("Products(680)/Name"),
         prodByColor = odata.from("GetProductsByColor");
 
-    prodByColor.params({ 'color': "'Red'" }).query();
-    odata.from('Add').params({ 'start': 42 }).query();
+    //    prods.query({
+    //        success: function (data, textStatus, xhr) {
+    //            var asdf;
+    //        }
+    //    });
 
-    prodName.value();
-    prods.count();
-    prods.query();
+    //    prods.query(function (data, textStatus, xhr) {
+    //        var asdf;
+    //    });
+
+    prods.count({
+        success: function (data, textStatus, xhr) {
+            var asdf;
+        }
+    });
+
+    prods.count(function (data, textStatus, xhr) {
+        var asdf;
+    });
+
+    // TODO DOES NOT WORK!!!
+    odata.from("Products(680)/Name").value(function (data, textStatus, xhr) {
+        $("p").html(data.data);
+    });
 });

@@ -13,10 +13,13 @@ namespace jquery.odata.services
         // This method is called only once to initialize service-wide policies.
         public static void InitializeService(DataServiceConfiguration config)
         {
+            config.UseVerboseErrors = true;
+            config.SetEntitySetPageSize("Products", 10);
+            config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
+
             config.SetServiceOperationAccessRule("GetProductsByColor", ServiceOperationRights.All);
             config.SetServiceOperationAccessRule("Add", ServiceOperationRights.All);
-            config.SetEntitySetAccessRule("*", EntitySetRights.All);
-            config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
+            config.SetEntitySetAccessRule("*", EntitySetRights.All);            
         }
 
         [WebGet]

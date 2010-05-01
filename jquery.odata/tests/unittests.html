@@ -12,10 +12,10 @@
             test("create odata object, test for valid serviceRootURI", function () {
                 var odata = $.odata("http://services.odata.org/OData/OData.svc/");
                 equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
-                equals(odata.uriBuilder(), "http://services.odata.org/OData/OData.svc/");
+                equals(odata.uriBuilder(), "http://services.odata.org/OData/OData.svc");
                 odata = $.odata("http://services.odata.org/OData/OData.svc");
                 equals(odata.serviceRootURI.charAt(odata.serviceRootURI.length - 1), 'c', "expected a 'c' at the end of serviceRootURI.");
-                equals(odata.uriBuilder(), "http://services.odata.org/OData/OData.svc/");
+                equals(odata.uriBuilder(), "http://services.odata.org/OData/OData.svc");
             });
 
             test("Addressing Entries", function () {
