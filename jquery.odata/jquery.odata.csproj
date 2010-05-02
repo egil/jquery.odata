@@ -57,7 +57,18 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="tester2.html" />
     <Content Include="examples\example1.js" />
+    <None Include="Service References\TimeTrackerServiceReference\Reference.datasvcmap">
+      <Generator>DataServiceClientGenerator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <Content Include="script\date.format.js" />
+    <Content Include="script\jquery.tmpl.js" />
+    <Content Include="script\json2.js" />
+    <Content Include="services\TimeTracker.edmx.sql" />
+    <Content Include="services\TimeTracker.svc" />
+    <Content Include="style.css" />
     <Content Include="tester.js" />
     <Content Include="script\jquery-1.4.2-vsdoc.js" />
     <Content Include="script\jquery-1.4.2.js" />
@@ -71,6 +82,9 @@
     <Content Include="tests\css\qunit.css" />
     <Content Include="tests\script\qunit.js" />
     <Content Include="tests\unittests.html" />
+    <Content Include="timetracker\index.html" />
+    <Content Include="timetracker\style.css" />
+    <Content Include="timetracker\timetracker.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -78,10 +92,20 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
+    <EntityDeploy Include="services\TimeTracker.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>TimeTracker.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="Service References\TimeTrackerServiceReference\service.edmx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service References\AdventureWorksServiceReference\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.datasvcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Service References\TimeTrackerServiceReference\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.datasvcmap</DependentUpon>
@@ -93,6 +117,14 @@
     </Compile>
     <Compile Include="services\AdventureWorks.svc.cs">
       <DependentUpon>AdventureWorks.svc</DependentUpon>
+    </Compile>
+    <Compile Include="services\TimeTracker.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TimeTracker.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="services\TimeTracker.svc.cs">
+      <DependentUpon>TimeTracker.svc</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +138,9 @@
   </ItemGroup>
   <ItemGroup>
     <ServiceReferenceMetadataStorage Include="Service References\AdventureWorksServiceReference\">
+      <Type>datasvcmap</Type>
+    </ServiceReferenceMetadataStorage>
+    <ServiceReferenceMetadataStorage Include="Service References\TimeTrackerServiceReference\">
       <Type>datasvcmap</Type>
     </ServiceReferenceMetadataStorage>
   </ItemGroup>

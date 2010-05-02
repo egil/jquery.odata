@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="TimeTracker.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+        <EntityContainer Name="TimeTrackerStoreContainer">
+          <EntitySet Name="Categories" EntityType="TimeTracker.Store.Categories" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Items" EntityType="TimeTracker.Store.Items" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Users" EntityType="TimeTracker.Store.Users" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_ItemCategory" Association="TimeTracker.Store.FK_ItemCategory">
+            <End Role="Categories" EntitySet="Categories" />
+            <End Role="Items" EntitySet="Items" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ItemUser" Association="TimeTracker.Store.FK_ItemUser">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Items" EntitySet="Items" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Categories">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Items">
+          <Key>
+            <PropertyRef Name="ItemId" />
+          </Key>
+          <Property Name="ItemId" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="CategoryId" Type="int" Nullable="false" />
+          <Property Name="CreatedOn" Type="datetime" Nullable="false" />
+          <Property Name="FinishedOn" Type="datetime" />
+          <Property Name="Description" Type="nvarchar" Nullable="false" MaxLength="200" />
+          <Property Name="IsDone" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="20" />
+        </EntityType>
+        <Association Name="FK_ItemCategory">
+          <End Role="Categories" Type="TimeTracker.Store.Categories" Multiplicity="1" />
+          <End Role="Items" Type="TimeTracker.Store.Items" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Categories">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Items">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ItemUser">
+          <End Role="Users" Type="TimeTracker.Store.Users" Multiplicity="1" />
+          <End Role="Items" Type="TimeTracker.Store.Items" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Items">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema xmlns="http://schemas.microsoft.com/ado/2008/09/edm" xmlns:cg="http://schemas.microsoft.com/ado/2006/04/codegeneration" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" Namespace="TimeTracker" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
+        <EntityContainer Name="TimeTrackerContainer" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Items" EntityType="TimeTracker.Item" />
+          <EntitySet Name="Users" EntityType="TimeTracker.User" />
+          <AssociationSet Name="ItemUser" Association="TimeTracker.ItemUser">
+            <End Role="Item" EntitySet="Items" />
+            <End Role="User" EntitySet="Users" />
+          </AssociationSet>
+          <EntitySet Name="Categories" EntityType="TimeTracker.Category" />
+          <AssociationSet Name="ItemCategory" Association="TimeTracker.ItemCategory">
+            <End Role="Item" EntitySet="Items" />
+            <End Role="Category" EntitySet="Categories" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Item">
+          <Key>
+            <PropertyRef Name="ItemId" />
+          </Key>
+          <Property Type="Int32" Name="ItemId" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <NavigationProperty Name="User" Relationship="TimeTracker.ItemUser" FromRole="Item" ToRole="User" />
+          <Property Type="Int32" Name="UserId" Nullable="false" />
+          <NavigationProperty Name="Category" Relationship="TimeTracker.ItemCategory" FromRole="Item" ToRole="Category" />
+          <Property Type="Int32" Name="CategoryId" Nullable="false" />
+          <Property Type="DateTime" Name="CreatedOn" ConcurrencyMode="None" annotation:StoreGeneratedPattern="None" Nullable="false" />
+          <Property Type="DateTime" Name="FinishedOn" Nullable="true" />
+          <Property Type="String" Name="Description" Nullable="false" ConcurrencyMode="Fixed" MaxLength="200" Unicode="true" />          
+          <Property Type="Boolean" Name="IsDone" Nullable="false" DefaultValue="false" ConcurrencyMode="Fixed" />          
+        </EntityType>
+        <EntityType Name="User">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="Name" Nullable="false" MaxLength="20" />
+          <NavigationProperty Name="Items" Relationship="TimeTracker.ItemUser" FromRole="User" ToRole="Item" />
+        </EntityType>
+        <Association Name="ItemUser">
+          <End Type="TimeTracker.Item" Role="Item" Multiplicity="*" />
+          <End Type="TimeTracker.User" Role="User" Multiplicity="1" />
+          <ReferentialConstraint>
+            <Principal Role="User">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Item">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Category">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="Name" Nullable="false" />
+          <NavigationProperty Name="Items" Relationship="TimeTracker.ItemCategory" FromRole="Category" ToRole="Item" />
+        </EntityType>
+        <Association Name="ItemCategory">
+          <End Type="TimeTracker.Item" Role="Item" Multiplicity="*" />
+          <End Type="TimeTracker.Category" Role="Category" Multiplicity="1" />
+          <ReferentialConstraint>
+            <Principal Role="Category">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Item">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="TimeTrackerStoreContainer" CdmEntityContainer="TimeTrackerContainer">
+    <EntitySetMapping Name="Items">
+      <EntityTypeMapping TypeName="IsTypeOf(TimeTracker.Item)">
+        <MappingFragment StoreEntitySet="Items">
+          <ScalarProperty Name="ItemId" ColumnName="ItemId" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+          <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
+          <ScalarProperty Name="FinishedOn" ColumnName="FinishedOn" />
+          <ScalarProperty Name="Description" ColumnName="Description" />
+          <ScalarProperty Name="IsDone" ColumnName="IsDone" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Users">
+      <EntityTypeMapping TypeName="IsTypeOf(TimeTracker.User)">
+        <MappingFragment StoreEntitySet="Users">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Categories">
+      <EntityTypeMapping TypeName="IsTypeOf(TimeTracker.Category)">
+        <MappingFragment StoreEntitySet="Categories">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping></edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram Name="TimeTracker" >
+        <EntityTypeShape EntityType="TimeTracker.Item" Width="1.5" PointX="2.25" PointY="0.75" Height="2.7494921874999996" />
+        <EntityTypeShape EntityType="TimeTracker.User" Width="1.5" PointX="5.25" PointY="0.625" Height="1.59568359375" />
+        <AssociationConnector Association="TimeTracker.ItemUser">
+          <ConnectorPoint PointX="3.75" PointY="1.485341796875" />
+          <ConnectorPoint PointX="5.25" PointY="1.485341796875" />
+        </AssociationConnector>
+        <EntityTypeShape EntityType="TimeTracker.Category" Width="1.5" PointX="5.25" PointY="2.5" Height="1.5956835937499996" />
+        <AssociationConnector Association="TimeTracker.ItemCategory">
+          <ConnectorPoint PointX="3.75" PointY="2.99974609375" />
+          <ConnectorPoint PointX="5.25" PointY="2.99974609375" />
+        </AssociationConnector>
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

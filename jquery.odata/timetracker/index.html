@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <title>Time Tracker Demo App</title>    
+</head>
+<body>
+
+    <table>
+        <caption>Time Tracker TODO List</caption>
+        <colgroup>
+            <col />
+            <col class="vzebra-odd" />
+            <col class="vzebra-even" />
+            <col class="vzebra-odd" />
+            <col class="vzebra-even" />
+            <col class="vzebra-odd" />
+            <col class="vzebra-even" />
+        </colgroup>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Id</th>
+                <th>Created On</th>
+                <th>Finished On</th>
+                <th>User</th>
+                <th>Category</th>
+                <th>Description</th>                
+                <th>Is Done</th>
+            </tr>
+        </thead>
+        <tbody id="insert">
+            <tr>
+                <td>
+                    <input id="insert-save" type="button" value="Save" />
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <select id="insert-user">                        
+                    </select>
+                </td>
+                <td>
+                    <select id="insert-category">                        
+                    </select>
+                </td>
+                <td>
+                    <input id="insert-description" type="text" />
+                </td>
+                <td>
+                    <input id="insert-isDone" type="checkbox" />
+                </td>
+            </tr>
+        </tbody>    
+        <tbody id="content">
+
+        </tbody>
+    </table>
+
+    <script src="../script/date.format.js" type="text/javascript"></script>
+    <script src="../script/jquery-1.4.2.js" type="text/javascript"></script>
+    <script src="../script/jquery.tmpl.js" type="text/javascript"></script>
+    <script src="../script/jquery.odata.js" type="text/javascript"></script>
+    <script src="timetracker.js" type="text/javascript"></script>    
+    <script type="text/html" id="content-tmpl">
+        <tr>
+            <td></td>
+            <td>{%= ItemId %}</td>
+            <td>{%= CreatedOn.format() %}</td>
+            {% if (FinishedOn !== null) { %}
+                <td>{%= FinishedOn.format() %}</td>
+            {% } else { %}
+                <td></td>
+            {% } %}       
+            <td>{%= User.Name %}</td>
+            <td>{%= Category.Name %}</td>
+            <td>{%= Description %}</td>
+            {% if (IsDone) { %}            
+                <td><input type="checkbox" value="{%= ItemId %}" checked /></td>
+            {% } else { %}
+                <td><input type="checkbox" value="{%= ItemId %}" /></td>
+            {% } %}       
+        </tr>
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@ namespace jquery.odata.services
         public static void InitializeService(DataServiceConfiguration config)
         {
             config.UseVerboseErrors = true;
-            config.SetEntitySetPageSize("Products", 10);
+            //config.SetEntitySetPageSize("Products", 10);
             config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
 
             config.SetServiceOperationAccessRule("GetProductsByColor", ServiceOperationRights.All);

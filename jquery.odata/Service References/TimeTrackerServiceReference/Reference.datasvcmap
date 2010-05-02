@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="a2fb7e99-1e06-458c-a894-56981926f982" xmlns="urn:schemas-microsoft-com:xml-dataservicemap">
+  <MetadataSources>
+    <MetadataSource Address="http://localhost:32751/services/TimeTracker.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="service.edmx" MetadataType="Edmx" ID="102c12d9-de49-4248-958a-6de2e7492655" SourceId="1" SourceUrl="http://localhost:32751/services/TimeTracker.svc" />
+  </Metadata>
+  <Extensions />
+</ReferenceGroup>

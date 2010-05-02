@@ -2,6 +2,7 @@
 "use strict";
 (function ($) {
     var odata,
+        odataUri,
         odataQuery,
         odataQueryResult,
     // trims slashes away from begining and end of string.
@@ -20,7 +21,7 @@
     // HACK: remove before publish. Enables VS2010 jQuery intellisense in closure.
     $ = jQuery;
 
-    odata = function (serviceRootURI, options) {
+    odata = function (uri, options) {
         ///	<summary>
         ///		Create a new OData object that can be used to query against
         ///     the specified service root URI.
@@ -29,19 +30,21 @@
         ///	<param name="serviceRootURI" type="String">
         ///		The service root URI of a OData service.
         ///	</param>
-        var that, settings;
-
-        // extend settings with options.
-        settings = jQuery.extend({
-            protocol: 'json'
-        }, options);
+        var that;
 
         // constructs the odata object and assign data to it
         that = {};
+        that.uriParts = $.isPlainObject(uri) ? odataUri(uri) : odataUri({ root: uri });
+        that.settings = options || {};
 
-        // trim and remove slashes from end of serviceRootURI.
-        that.serviceRootURI = trimRightSlashes(trim(serviceRootURI));
-        that.settings = settings;
+        // if protocol is jsonp, $format=json needs to 
+        // be added to the query string options.
+        if (that.settings.dataType !== undefined && that.settings.dataType === 'jsonp') {
+            that.uriParts.options.format = 'json';
+        }
+
+        // construct uri
+        that.uri = uriBuilder(that.uriParts);
 
         that.from = function (resourcePath) {
             ///	<summary>
@@ -69,7 +72,79 @@
             serviceCall(this, options);
         };
 
-        that.uriBuilder = uriBuilder;
+        that.create = function (resourcePath, entry, options) {
+            ///	<summary>
+            ///		Create a new entry on the specified OData resource path.
+            ///	</summary>
+            var that;
+
+            // allow users to pass in just a callback 
+            // function in case of success.
+            if ($.isFunction(options)) {
+                options = { success: options };
+            }
+
+            options.type = "POST";
+            options.data = JSON.stringify(entry);
+
+            // create new OData Query object
+            that = $.extend(true, {}, this);
+            that.uriParts.resource = resourcePath;
+            that.uri = uriBuilder(that.uriParts);
+
+            serviceCall(that, options);
+        };
+
+        that.update = function (resourcePath, entry, options) {
+            ///	<summary>
+            ///		Update an entry on the specified OData resource path.
+            ///	</summary>
+            var that,
+                settings,
+                defaults = {
+                    partialUpdate: true,
+                    forceUpdate: false,
+                    etag: null
+                };
+
+            // look for etag in entry.__metadata.
+            if (entry.__metadata !== undefined && entry.__metadata.etag !== undefined) {
+                options.etag = entry.__metadata.etag;
+            }
+
+            // allow users to pass in just a callback 
+            // function in case of success.
+            if ($.isFunction(options)) {
+                options = { success: options };
+            }
+
+            // copy options from user
+            settings = $.extend({}, defaults, options);
+
+            // if partialUpdate is true we must use HTTP MERGE
+            settings.type = settings.partialUpdate ? "MERGE" : "PUT";
+
+            // if forceUpdate is true, ignore possible ETag and always override 
+            if(settings.forceUpdate){
+                settings.etag = '*';
+            }
+
+            // if updating a value directly, use 'text/plain' content type.
+            if ($.isPlainObject(entry)) {
+                settings.data = JSON.stringify(entry);
+                settings.contentType = 'application/json';
+            }
+            else {
+                settings.data = entry.toString();
+                settings.contentType = 'text/plain';
+            }
+
+            // create new OData Query object
+            that = $.extend(true, {}, this);
+            that.uriParts.resource = resourcePath;
+            that.uri = uriBuilder(that.uriParts);
+            serviceCall(that, settings);
+        }
 
         return that;
     };
@@ -107,7 +182,8 @@
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.links = navigationProperty;
+            that.uriParts.links = navigationProperty;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -130,7 +206,8 @@
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.orderby = orderbyQueryOption;
+            that.uriParts.options.orderby = orderbyQueryOption;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -148,7 +225,8 @@
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.top = numberOfEntries;
+            that.uriParts.options.top = numberOfEntries;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -165,7 +243,8 @@
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.skip = numberOfEntries;
+            that.uriParts.options.skip = numberOfEntries;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -182,7 +261,8 @@
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.filter = filter;
+            that.uriParts.options.filter = filter;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -205,7 +285,8 @@
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.expand = entries;
+            that.uriParts.options.expand = entries;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -221,7 +302,8 @@
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.select = properties;
+            that.uriParts.options.select = properties;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -235,11 +317,13 @@
             ///	</param>                
             var that;
 
-            inlinecount = inlinecount || "allpages";
+            // set default value if inlinecount argument is not specified
+            inlinecount = inlinecount === undefined ? true : inlinecount;
 
             // create new OData Query object
             that = $.extend(true, {}, this);
-            that.options.inlinecount = inlinecount;
+            that.uriParts.options.inlinecount = inlinecount;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -258,7 +342,8 @@
             that = $.extend(true, {}, this);
 
             // add params to query options object
-            that.options = $.extend(true, that.options, { params: params });
+            that.uriParts.options.params = params;
+            that.uri = uriBuilder(that.uriParts);
 
             return that;
         };
@@ -282,7 +367,8 @@
             that = $.extend(true, {}, this);
 
             // add count query string to query options object
-            that.options = $.extend({}, that.options, { count: '$count' });
+            that.uriParts.count = true;
+            that.uri = uriBuilder(that.uriParts);
 
             if (autoQuery) {
                 // execute the query
@@ -312,7 +398,8 @@
             that = $.extend(true, {}, this);
 
             // add value query string to query options object
-            that.options = $.extend({}, that.options, { value: '$value' });
+            that.uriParts.value = true;
+            that.uri = uriBuilder(that.uriParts);
 
             if (autoQuery) {
                 // execute the query
@@ -324,10 +411,8 @@
         };
 
         // trim and remove both slashes from both start and end of resourcePath.
-        that.resourcePath = trimSlashes(trim(resourcePath));
-
-        // add options object
-        that.options = {};
+        that.uriParts.resource = resourcePath;
+        that.uri = uriBuilder(that.uriParts);
 
         // add methods
         that.value = value;
@@ -353,111 +438,144 @@
         that.ETag = xhr.getResponseHeader("ETag");
         that.status = xhr.status;
         that.statusText = xhr.statusText;
+        that.query = query;
 
         return that;
     };
 
-    uriBuilder = function (query) {
-        var p, needAmpersand, opt, qopts = '', resourcePath = '';
+    odataUri = function (uriParts) {
+        var that;
 
-        // if query is undefined, assume uriBuilder is being called on a OData object.
-        query = query || this;
-        opt = query.options;
-
-        // base part of resource path
-        resourcePath = query.resourcePath !== undefined ? query.resourcePath : '';
-
-        // add query options if specified
-        if (opt !== undefined) {
-            // start of extended part of resource path
-
-            // addressing links between entries
-            if (opt.links !== undefined) {
-                resourcePath += '/$links/' + opt.links;
+        // define uri object default structure
+        that = {
+            value: false,
+            count: false,
+            options: {
+                inlinecount: false
             }
+        };
+        if (uriParts !== undefined) {
+            $.extend(that, uriParts);
+        }
+        return that;
+    };
 
-            // add count if specified or ...
-            if (query.options.count !== undefined) {
-                resourcePath += '/' + query.options.count;
-            }
-            // add value if specified.
-            else if (query.options.value !== undefined) {
-                resourcePath += '/' + query.options.value;
-            }
+    uriBuilder = function (uri) {
+        var opt = uri.options,
+            p,
+            needAmpersand = false,
+            resourcePath,
+            qopts = '';
 
-            // end of extended part of resource path
+        // if root is undefined, there is nothing to build.
+        if (uri.root === undefined) {
+            return '';
+        }
 
-            // begining of query string options
-            // if true, insert ambersand before adding next query string option
-            needAmpersand = false;
+        // start out with just the resouce path, if that is defined.        
+        resourcePath = uri.resource !== undefined ? trimSlashes(trim(uri.resource)) : '';
 
-            // add service operations params
-            if (opt.params !== undefined) {
-                for (p in opt.params) {
-                    if (p !== undefined) {
-                        if (needAmpersand) {
-                            qopts += '&';
-                        }
-                        qopts += p + "=" + opt.params[p];
-                        needAmpersand = true;
-                    }
-                }
-            }
+        // start of extended part of resource path
 
-            // add query string options
-            for (p in opt) {
-                if (p !== undefined) {
-                    switch (p) {
-                        case 'inlinecount':
-                            // inlinecount === none is the same as 
-                            // not including inlinecount in query string.
-                            if (opt.inlinecount.toUpperCase() === 'NONE') {
-                                break;
+        // addressing links between entries
+        if (uri.links !== undefined) {
+            resourcePath += '/$links/' + uri.links;
+        }
+
+        // add count if specified or ...
+        if (uri.count) {
+            resourcePath += '/$count';
+        }
+
+        // add value if specified.
+        else if (uri.value) {
+            resourcePath += '/$value';
+        }
+
+        // end of extended part of resource path
+
+        // add query string options
+        for (p in opt) {
+            if (p !== undefined) {
+                switch (p) {
+                    case 'params':
+                        for (p in opt.params) {
+                            if (p !== undefined) {
+                                if (needAmpersand) {
+                                    qopts += '&';
+                                }
+                                qopts += p + "=" + opt.params[p];
+                                needAmpersand = true;
                             }
-                            // else fall through
-                        case 'orderby':
-                        case 'top':
-                        case 'skip':
-                        case 'filter':
-                        case 'expand':
-                        case 'select':
+                        }
+                        break;
+                    case 'inlinecount':
+                        // inlinecount === none is the same as 
+                        // not including inlinecount in query string.
+                        if (opt.inlinecount) {
                             if (needAmpersand) {
                                 qopts += '&';
                             }
-                            qopts += "$" + p + "=" + opt[p];
+                            qopts += "$inlinecount=allpages";
                             needAmpersand = true;
                             break;
-                    }
+                        }
+                        break;
+                    case 'orderby':
+                    case 'top':
+                    case 'skip':
+                    case 'filter':
+                    case 'expand':
+                    case 'select':
+                    case 'skiptoken':
+                        if (needAmpersand) {
+                            qopts += '&';
+                        }
+                        qopts += "$" + p + "=" + opt[p];
+                        needAmpersand = true;
+                        break;
+                    case 'format':
+                        // specify $format=json in url if retriving json, i.e. not $count or $value.
+                        if (opt[p] === 'json' && !uri.count && !uri.value) {
+                            if (needAmpersand) {
+                                qopts += '&';
+                            }
+                            qopts += "$format=json";
+                        }
+                        break;
+
                 }
             }
         }
 
-        // specify $format=json in url if retriving json, i.e. not $count or $value.
-        if (query.settings.protocol === 'jsonp') {
-            if (needAmpersand) {
-                qopts += '&';
-            }
-            qopts += '$format=json';
-        }
-
-        return query.serviceRootURI + (resourcePath !== '' ? '/' + resourcePath : '') + (qopts !== '' ? '?' + qopts : '');
+        return trimRightSlashes(trim(uri.root)) + (resourcePath !== '' ? '/' + resourcePath : '') + (qopts !== '' ? '?' + qopts : '');
     };
 
     serviceCall = function (query, options) {
-        var opt = query.options,
-            settings;
+        var settings,
+            defaults = {
+                contentType: 'application/json',
+                dataType: 'json',
+                type: "GET"
+            };
 
-        // extend settings with options.
-        settings = jQuery.extend({
-            type: "GET"
-        }, query.settings, options);
+        // extend settings with options and defaults.
+        settings = jQuery.extend({}, defaults, query.settings, options);
+
+        // if type is PUT, DELETE or MERGE, use POST and specify
+        // correct HTTP type through X-HTTP-Method header. 
+        // this enables support for browsers that do not support
+        // one or more of PUT, DELETE or MERGE.
+        settings.actualType = settings.type === "PUT" ||
+                              settings.type === "DELETE" ||
+                              settings.type === "MERGE" ? "POST" : settings.type;
 
         // select dataType based on query
-        if (settings.protocol !== 'jsonp') {
-            if (opt.value !== undefined) {
-                settings.protocol = '*/*';
-            } else if (opt.count !== undefined) {
-                settings.protocol = 'text';
+        if (settings.dataType !== 'jsonp') {
+            if (query.uri.value) {
+                settings.dataType = '*/*';
+            } else if (query.uri.count) {
+                settings.dataType = 'text';
             }
         }
 
@@ -469,12 +587,21 @@
                 xhr.setRequestHeader('MaxDataServiceVersion', '2.0');
 
                 // DataServiceVersion must be 2.0 if using
-                // $count or $select query options
-                if (opt.count === undefined && opt.select === undefined && opt.inlinecount === undefined) {
-                    xhr.setRequestHeader('DataServiceVersion', '1.0');
+                // $count, $inlinecount or $select query options
+                if (query.uriParts.count || query.uriParts.options.inlinecount || query.uriParts.options.select !== undefined) {
+                    xhr.setRequestHeader('DataServiceVersion', '2.0');
                 }
                 else {
-                    xhr.setRequestHeader('DataServiceVersion', '2.0');
+                    xhr.setRequestHeader('DataServiceVersion', '1.0');
+                }
+
+                // Concurrency control
+                if (settings.etag !== null) {
+                    xhr.setRequestHeader('If-Match', settings.etag);
+                }
+
+                if (options.type === "DELETE" || options.type === "PUT" || options.type === "MERGE") {
+                    xhr.setRequestHeader('X-HTTP-Method', options.type);
                 }
 
                 // call users beforeSend if specified
@@ -482,30 +609,35 @@
                     settings.beforeSend(xhr);
                 }
             },
-            dataFilter: function (data) {
-                data = JSON.parse(data, function (key, value) {
-                    var dateTimeParts, date;
-                    if (value != null) {
-                        if (value.toString().indexOf('Date') !== -1) {
-                            // "\/Date(<ticks>["+" | "-" <offset>)\/"
-                            dateTimeParts = /^\/Date\((-?\d+)([-|+]\d+)?\)\/$/.exec(value);
-                            if (dateTimeParts) {
-                                // consider doing something with the offset part.
-                                date = new Date(parseInt(dateTimeParts[1], 10));
-                                return date;
+            dataFilter: function (data, type) {
+                if (type === 'json' || type === 'jsonps') {
+                    data = JSON.parse(data, function (key, value) {
+                        var dateTimeParts, date;
+                        if (value !== null) {
+                            if (value.toString().indexOf('Date') !== -1) {
+                                // "\/Date(<ticks>["+" | "-" <offset>)\/"
+                                dateTimeParts = /^\/Date\((-?\d+)([\-|+]\d+)?\)\/$/.exec(value);
+                                if (dateTimeParts) {
+                                    // consider doing something with the offset part.
+                                    date = new Date(parseInt(dateTimeParts[1], 10));
+                                    return date;
+                                }
                             }
+                            return value;
                         }
-                        return value;
-                    }
-                });
+                    });
+                }
                 return data;
             },
-            dataType: settings.protocol,
+            data: settings.data,
+            dataType: settings.dataType,
+            contentType: settings.contentType,
             password: settings.password,
             username: settings.username,
             timeout: settings.timeout,
-            type: settings.type,
-            url: uriBuilder(query),
+            type: settings.actualType,
+            processData: false,
+            url: query.uri,
             success: function (data, textStatus, xhr) {
                 if ($.isFunction(settings.success)) {
                     settings.success(odataQueryResult(data, xhr, query), textStatus, xhr);

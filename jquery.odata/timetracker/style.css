@@ -1,0 +1,54 @@
+﻿body {
+    font-family: "Lucida Sans Unicode" , "Lucida Grande" ,Sans-Serif;
+    font-size: 12px;
+}
+
+table {
+    text-align: left;
+    table-layout: auto;
+    border-collapse: collapse;
+    empty-cells: show;
+    caption-side: top;
+}
+
+th {
+    border-left: 1px solid #FFFFFF;
+    border-right: 1px solid #FFFFFF;
+    color: #003399;
+    font-size: 14px;
+    font-weight: normal;
+    padding: 12px 15px;
+    white-space: nowrap;
+}
+
+caption
+{
+    color: #003399;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+td {
+    border-left: 1px solid #FFFFFF;
+    border-right: 1px solid #FFFFFF;
+    color: #666699;
+    padding: 8px 15px;
+}
+
+.vzebra-odd {
+    background: none repeat scroll 0 0 #EFF2FF;
+}
+.vzebra-even {
+    background: none repeat scroll 0 0 #E8EDFF;
+}
+
+.th-odd {
+    background: none repeat scroll 0 0 #DCE4FF;
+    border-bottom: 1px solid #D6DFFF;
+}
+
+.th-even {
+    background: none repeat scroll 0 0 #D0DAFD;
+    border-bottom: 1px solid #C8D4FD;
+}

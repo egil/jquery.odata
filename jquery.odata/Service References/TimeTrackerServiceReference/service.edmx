@@ -1,0 +1,75 @@
+﻿<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="1.0">
+    <Schema Namespace="TimeTracker" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+      <EntityType Name="Item">
+        <Key>
+          <PropertyRef Name="ItemId" />
+        </Key>
+        <Property Name="ItemId" Type="Edm.Int32" Nullable="false" p8:StoreGeneratedPattern="Identity" xmlns:p8="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+        <Property Name="UserId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="CategoryId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="CreatedOn" Type="Edm.DateTime" Nullable="false" ConcurrencyMode="Fixed" p8:StoreGeneratedPattern="None" xmlns:p8="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+        <Property Name="FinishedOn" Type="Edm.DateTime" Nullable="true" />
+        <Property Name="Description" Type="Edm.String" Nullable="false" MaxLength="200" Unicode="true" ConcurrencyMode="Fixed" />
+        <Property Name="IsDone" Type="Edm.Boolean" Nullable="false" DefaultValue="false" ConcurrencyMode="Fixed" />
+        <NavigationProperty Name="User" Relationship="TimeTracker.ItemUser" FromRole="Item" ToRole="User" />
+        <NavigationProperty Name="Category" Relationship="TimeTracker.ItemCategory" FromRole="Item" ToRole="Category" />
+      </EntityType>
+      <EntityType Name="User">
+        <Key>
+          <PropertyRef Name="Id" />
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false" p8:StoreGeneratedPattern="Identity" xmlns:p8="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+        <Property Name="Name" Type="Edm.String" Nullable="false" MaxLength="20" />
+        <NavigationProperty Name="Items" Relationship="TimeTracker.ItemUser" FromRole="User" ToRole="Item" />
+      </EntityType>
+      <EntityType Name="Category">
+        <Key>
+          <PropertyRef Name="Id" />
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false" p8:StoreGeneratedPattern="Identity" xmlns:p8="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+        <Property Name="Name" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="Items" Relationship="TimeTracker.ItemCategory" FromRole="Category" ToRole="Item" />
+      </EntityType>
+      <Association Name="ItemUser">
+        <End Role="Item" Type="TimeTracker.Item" Multiplicity="*" />
+        <End Role="User" Type="TimeTracker.User" Multiplicity="1" />
+        <ReferentialConstraint>
+          <Principal Role="User">
+            <PropertyRef Name="Id" />
+          </Principal>
+          <Dependent Role="Item">
+            <PropertyRef Name="UserId" />
+          </Dependent>
+        </ReferentialConstraint>
+      </Association>
+      <Association Name="ItemCategory">
+        <End Role="Item" Type="TimeTracker.Item" Multiplicity="*" />
+        <End Role="Category" Type="TimeTracker.Category" Multiplicity="1" />
+        <ReferentialConstraint>
+          <Principal Role="Category">
+            <PropertyRef Name="Id" />
+          </Principal>
+          <Dependent Role="Item">
+            <PropertyRef Name="CategoryId" />
+          </Dependent>
+        </ReferentialConstraint>
+      </Association>
+    </Schema>
+    <Schema Namespace="jquery.odata.services" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+      <EntityContainer Name="TimeTrackerContainer" p7:LazyLoadingEnabled="true" m:IsDefaultEntityContainer="true" xmlns:p7="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
+        <EntitySet Name="Items" EntityType="TimeTracker.Item" />
+        <EntitySet Name="Users" EntityType="TimeTracker.User" />
+        <EntitySet Name="Categories" EntityType="TimeTracker.Category" />
+        <AssociationSet Name="ItemUser" Association="TimeTracker.ItemUser">
+          <End Role="Item" EntitySet="Items" />
+          <End Role="User" EntitySet="Users" />
+        </AssociationSet>
+        <AssociationSet Name="ItemCategory" Association="TimeTracker.ItemCategory">
+          <End Role="Item" EntitySet="Items" />
+          <End Role="Category" EntitySet="Categories" />
+        </AssociationSet>
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
