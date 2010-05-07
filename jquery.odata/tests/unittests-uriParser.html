@@ -1,0 +1,121 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>OData.URI Unittests</title>
+    <script type="text/javascript" src="../script/jquery-1.4.2.js"></script>
+    <script type="text/javascript" src="../script/odata.uri.js"></script>
+    <link rel="stylesheet" href="css/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="script/qunit.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            test("ctor tests", function () {
+            });
+
+            test("parse tests", function () {
+                var uri = odataUri(),
+                    actual,
+                    input,
+                    expected;
+
+                // both new and current are absolute uris
+                uri.segments.root = "http://services.odata.org/OData/OData.svc";
+                expected = "http://services.odata.org/OData/OData.svc/Category(1)/Products";
+                input = "http://services.odata.org/OData/OData.svc/Category(1)/Products/";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // both new and current are relative uris
+                uri.segments.root = "/OData/OData.svc";
+                expected = input = "/OData/OData.svc/Category(1)/Products";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // new is relative, current is absolute uris
+                uri.segments.root = "http://services.odata.org/OData/OData.svc";
+                input = '/OData/OData.svc/Category(1)/Products';
+                expected = "http://services.odata.org/OData/OData.svc/Category(1)/Products";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // new is absolute, current is relative
+                uri.segments.root = "/OData/OData.svc";
+                input = "http://services.odata.org/OData/OData.svc/Category(1)/Products/";
+                expected = "/OData/OData.svc/Category(1)/Products";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                uri.segments.root = "/OData/OData.svc";
+
+                // detect $count                
+                expected = input = "/OData/OData.svc/Category(1)/Products/$count";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $value
+                expected = input = "/OData/OData.svc/Categories(1)/Products(1)/Supplier/Address/City/$value";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $links
+                expected = input = "/OData/OData.svc/Categories(1)/$links/Products";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $orderby
+                expected = input = "/OData/OData.svc/Products?$orderby=Name,ReleaseDate desc";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $orderby, $skip
+                expected = input = "/OData/OData.svc/Products?$orderby=Name,ReleaseDate desc&$skip=50";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $orderby, $top
+                expected = input = "/OData/OData.svc/Products?$orderby=Name,ReleaseDate desc&$skip=50&$top=20";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $orderby, $skip, $top, $filter
+                expected = input = "/OData/OData.svc/Products?$filter=not endswith(Description,'milk')&$orderby=Name,ReleaseDate desc&$skip=50&$top=20";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $orderby, $skip, $top, $filter, $expand
+                expected = input = "/OData/OData.svc/Products?$expand=Category&$filter=not endswith(Description,'milk')&$orderby=Name,ReleaseDate desc&$skip=50&$top=20";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $select
+                expected = input = "/OData/OData.svc/Products?$select=Name,Description";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $inlinecount
+                expected = input = "/OData/OData.svc/Products?$inlinecount=allpages";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect $format
+                expected = input = "/OData/OData.svc/Products?$format=text";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+
+                // detect custom parameters and service operations
+                expected = input = "/OData/OData.svc/ProductsByColor?color='red'";
+                actual = uri.parse(input);
+                equals(actual.toString(), expected);
+            });
+        });       
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">jQuery.OData Unittests</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests">
+    </ol>
+</body>
+</html>

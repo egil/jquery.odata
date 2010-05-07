@@ -26,7 +26,7 @@
                 odata = $.odata({
                     root: 'http://services.odata.org/OData/OData.svc',
                     resource: 'Products'
-                }, { protocol: 'jsonp' });
+                }, { dataType: 'jsonp' });
                 equals(odata.uri, "http://services.odata.org/OData/OData.svc/Products?$format=json");
             });
 

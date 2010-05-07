@@ -1,0 +1,2 @@
+﻿matches $count or $value one or zero times
+/(\$count|\$value?)/

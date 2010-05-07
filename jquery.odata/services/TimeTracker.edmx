@@ -94,7 +94,7 @@
           <Property Type="Int32" Name="UserId" Nullable="false" />
           <NavigationProperty Name="Category" Relationship="TimeTracker.ItemCategory" FromRole="Item" ToRole="Category" />
           <Property Type="Int32" Name="CategoryId" Nullable="false" />
-          <Property Type="DateTime" Name="CreatedOn" ConcurrencyMode="None" annotation:StoreGeneratedPattern="None" Nullable="false" />
+          <Property Type="DateTime" Name="CreatedOn" ConcurrencyMode="None" annotation:StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Type="DateTime" Name="FinishedOn" Nullable="true" />
           <Property Type="String" Name="Description" Nullable="false" ConcurrencyMode="Fixed" MaxLength="200" Unicode="true" />          
           <Property Type="Boolean" Name="IsDone" Nullable="false" DefaultValue="false" ConcurrencyMode="Fixed" />          

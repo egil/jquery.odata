@@ -46,7 +46,7 @@
                     </select>
                 </td>
                 <td>
-                    <input id="insert-description" type="text" />
+                    <input id="insert-description" type="text" style="width: 300px" />
                 </td>
                 <td>
                     <input id="insert-isDone" type="checkbox" />
@@ -65,7 +65,9 @@
     <script src="timetracker.js" type="text/javascript"></script>    
     <script type="text/html" id="content-tmpl">
         <tr>
-            <td></td>
+            <td>
+                <input name="delete" type="button" value="Delete" />
+            </td>
             <td>{%= ItemId %}</td>
             <td>{%= CreatedOn.format() %}</td>
             {% if (FinishedOn !== null) { %}

@@ -57,8 +57,16 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="regex notes.txt" />
+    <Content Include="script\jquery.odata.min.js" />
+    <Content Include="script\odata.uri.js" />
+    <None Include="Service References\ODataOrgDemoServiceReference\Reference.datasvcmap">
+      <Generator>DataServiceClientGenerator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
     <Content Include="tester2.html" />
     <Content Include="examples\example1.js" />
+    <None Include="Service References\ODataOrgDemoServiceReference\service.edmx" />
     <None Include="Service References\TimeTrackerServiceReference\Reference.datasvcmap">
       <Generator>DataServiceClientGenerator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
@@ -79,6 +87,7 @@
     </None>
     <Content Include="services\AdventureWorks.svc" />
     <Content Include="tester.html" />
+    <Content Include="tests\unittests-uriParser.html" />
     <Content Include="tests\css\qunit.css" />
     <Content Include="tests\script\qunit.js" />
     <Content Include="tests\unittests.html" />
@@ -101,6 +110,11 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service References\AdventureWorksServiceReference\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.datasvcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Service References\ODataOrgDemoServiceReference\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.datasvcmap</DependentUpon>
@@ -138,6 +152,9 @@
   </ItemGroup>
   <ItemGroup>
     <ServiceReferenceMetadataStorage Include="Service References\AdventureWorksServiceReference\">
+      <Type>datasvcmap</Type>
+    </ServiceReferenceMetadataStorage>
+    <ServiceReferenceMetadataStorage Include="Service References\ODataOrgDemoServiceReference\">
       <Type>datasvcmap</Type>
     </ServiceReferenceMetadataStorage>
     <ServiceReferenceMetadataStorage Include="Service References\TimeTrackerServiceReference\">

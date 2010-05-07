@@ -8,9 +8,20 @@
     <script type="text/javascript">
         $(document).ready(function () {
             $.ajax({
-                url: '/services/',
-                type: 'MERGE',
-                data: '{}'
+                beforeSend: function (xhr) {
+                    // note: this function is not called when dataType = jsonp
+
+                    // Tell service we understand DataServiceVersion 2.0
+                    xhr.setRequestHeader('MaxDataServiceVersion', '2.0');
+                    xhr.setRequestHeader('DataServiceVersion', '1.0');
+                    xhr.setRequestHeader('If-Match', '*');
+                    xhr.setRequestHeader('X-HTTP-Method', "DELETE");                    
+                },
+                url: "http://localhost:32751/services/TimeTracker.svc/Items(42)",
+                type: 'POST',
+                success: function(a,b,c){
+                    alert('tada');
+                }
             });
 
 

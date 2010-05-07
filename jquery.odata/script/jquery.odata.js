@@ -102,15 +102,10 @@
             var that,
                 settings,
                 defaults = {
-                    partialUpdate: true,
-                    forceUpdate: false,
+                    partial: true,
+                    force: false,
                     etag: null
                 };
-
-            // look for etag in entry.__metadata.
-            if (entry.__metadata !== undefined && entry.__metadata.etag !== undefined) {
-                options.etag = entry.__metadata.etag;
-            }
 
             // allow users to pass in just a callback 
             // function in case of success.
@@ -118,16 +113,17 @@
                 options = { success: options };
             }
 
+            // look for etag in entry.__metadata.
+            if (options.etag === undefined && entry.__metadata !== undefined && entry.__metadata.etag !== undefined) {
+                options.etag = entry.__metadata.etag;
+            }
+
             // copy options from user
             settings = $.extend({}, defaults, options);
 
             // if partialUpdate is true we must use HTTP MERGE
-            settings.type = settings.partialUpdate ? "MERGE" : "PUT";
+            settings.type = settings.partial ? "MERGE" : "PUT";
 
-            // if forceUpdate is true, ignore possible ETag and always override 
-            if(settings.forceUpdate){
-                settings.etag = '*';
-            }
 
             // if updating a value directly, use 'text/plain' content type.
             if ($.isPlainObject(entry)) {
@@ -144,7 +140,53 @@
             that.uriParts.resource = resourcePath;
             that.uri = uriBuilder(that.uriParts);
             serviceCall(that, settings);
-        }
+        };
+        
+        that['delete'] = that.deleteEntry = that.remove = function (entry, options) {
+            var that,
+                settings,
+                defaults = {
+                    force: false,
+                    etag: null
+                };
+
+            // allow users to pass in just a callback 
+            // function in case of success.
+            if ($.isFunction(options)) {
+                options = { success: options };
+            }
+
+            // look for etag in entry.__metadata.
+            if (options.etag === undefined && entry.__metadata !== undefined && entry.__metadata.etag !== undefined) {
+                options.etag = entry.__metadata.etag;
+            }
+
+            // copy options from user
+            settings = $.extend({}, defaults, options);
+
+            // if forceUpdate is true, ignore possible ETag and always override 
+            if (settings.force) {
+                settings.etag = '*';
+            }
+
+            settings.type = "DELETE";
+
+            // create new OData Query object
+            that = $.extend(true, {}, this);
+            //that.uriParts.resource = resourcePath;
+            that.uriParts = odataUri();
+
+            // if entry is a object, look for uri in __metadata.uri.
+            // else we assume that entry is a string, i.e. the resource path
+            // to the entry that should be deleted.
+            if ($.isPlainObject(entry) && entry.__metadata !== undefined && entry.__metadata.uri !== undefined) {
+                that.uri = entry.__metadata.uri;
+            } else {
+                that.uri = entry;
+            }
+
+            serviceCall(that, settings);
+        };
 
         return that;
     };
@@ -556,6 +598,7 @@
             defaults = {
                 contentType: 'application/json',
                 dataType: 'json',
+                etag: null,
                 type: "GET"
             };
 
@@ -571,12 +614,21 @@
                               settings.type === "MERGE" ? "POST" : settings.type;
 
         // select dataType based on query
-        if (settings.dataType !== 'jsonp') {
+        if (settings.type === 'GET' && settings.dataType !== 'jsonp') {
             if (query.uri.value) {
                 settings.dataType = '*/*';
             } else if (query.uri.count) {
                 settings.dataType = 'text';
             }
+        } else if (settings.type === "PUT" || settings.type === "DELETE" || settings.type === "MERGE") {
+            // we need to set dataType = '*/*' since we do not expect any data
+            // back from the server. If we do not specify */*, dataFilter 
+            // and JSON.parse will try to parse the data and fail
+            settings.dataType = '*/*';
+        }
+
+        if(settings.type === "DELETE"){
+            settings.dataType = '*/*';
         }
 
         $.ajax({

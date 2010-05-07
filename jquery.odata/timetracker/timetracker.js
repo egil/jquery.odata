@@ -20,33 +20,36 @@ $(document).ready(function () {
     });
 
     $('tbody#content input[type=checkbox]').live('click', function () {
-        var tmp = {},
+        var tmp,
             item = $(this) // cb
                     .parent() // td
                     .parent() // tr
                     .data('entry');
 
         item.IsDone = this.checked;
-        item.FinishedOn = new Date();
-        delete item.Category;
-        delete item.User;
-
-        //  odata.update('Items(' + item.ItemId + ')', item, {
-        //      etag: item.__metadata.etag,
-        //      success: function (res) {
-        //          item.__metadata.etag = res.etag;
-        //          console.log(res);
-        //      }
-        //  });
+        item.FinishedOn = item.IsDone ? new Date() : null;
+        tmp = { IsDone: item.IsDone, FinishedOn: item.FinishedOn };
 
         // partial update
-        odata.update('Items(' + item.ItemId + ')', { IsDone: item.IsDone, FinishedOn: item.FinishedOn }, {
+        odata.update('Items(' + item.ItemId + ')', tmp, {
             etag: item.__metadata.etag,
-            success: function (res) {                
-                bindTable();                
+            success: function (res) {
+                bindTable();
             }
         });
     });
+
+    $('tbody#content input[name=delete]').live('click', function () {
+        var item = $(this) // cb
+                    .parent() // td
+                    .parent(), // tr
+            entry = item.data('entry');
+
+        odata.remove(entry, function(){
+            item.remove();
+        })
+    });
+
 
     $('#insert-save').click(function () {
         var item = {};
@@ -55,14 +58,15 @@ $(document).ready(function () {
         item.Description = $('#insert-description').val();
         item.IsDone = $('#insert-isDone')[0].checked;
         item.CreatedOn = new Date();
+        item.FinishedOn = item.IsDone ? item.CreatedOn : null;
         odata.create('Items', item, function (res) {
-            //addContentToTable(res.data);            
             bindTable();
+            $('#insert-description').val("");
         });
     });
 
     bindTable = function () {
-        odata.from("Items").orderby("IsDone,CreatedOn").expand("Category,User").query(function (res) {
+        odata.from("Items").orderby("CreatedOn desc").expand("Category,User").query(function (res) {
             $('tbody#content').html('');
             addContentToTable(res.data);
         });
