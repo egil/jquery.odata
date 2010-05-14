@@ -70,13 +70,13 @@ var odataUri = function () {
 
         // Location of resource path part in temp
         if (temp.indexOf(root) === 0) {
-            // case 1 and 2
+            // both root and uriString are absolute or relative
             resourcePath = parts[0].slice(root.length);
         } else if ((index = temp.indexOf(root)) > 0) {
-            // case 3          
+            // root is absolute, uriString is relative (thus fits in uriString)
             resourcePath = parts[0].slice(root.length + index);
         } else {
-            // case 4
+            // uriString absolute, root is relative
             // remove one character from root at the time,
             // until we find the the start of temp.
             index = 0;
@@ -233,14 +233,14 @@ var odataUri = function () {
                         }
                         break;
                     case 'format':
-                        //                        // specify $format=json in url if retriving json, i.e. not $count or $value.
-                        //                        if (opt[p] === 'json' && !uriSegs.count && !uriSegs.value) {
-                        //                            if (needAmpersand) {
-                        //                                qopts += '&';
-                        //                            }
-                        //                            qopts += "$format=json";
-                        //                        }
-                        //                        break;
+                        //  // specify $format=json in url if retriving json, i.e. not $count or $value.
+                        //  if (opt[p] === 'json' && !uriSegs.count && !uriSegs.value) {
+                        //      if (needAmpersand) {
+                        //          qopts += '&';
+                        //      }
+                        //      qopts += "$format=json";
+                        //  }
+                        //  break;
                     case 'orderby':
                     case 'top':
                     case 'skip':
@@ -273,7 +273,7 @@ var odataUri = function () {
     // and root starts with something else than http: or https:
                           (!/^http:\/\/|https:\/\//i.test(that.segments.root) ||
     // or contains the window.location.protocol + '//' + window.location.host at index 0
-                           that.segments.root.toLowerCase().indexOf(location.protocol + '//' + location.host) === 0);
+                          that.segments.root.toLowerCase().indexOf(location.protocol + '//' + location.host) === 0);
 
 
     return that;
