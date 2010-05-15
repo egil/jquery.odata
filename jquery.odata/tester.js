@@ -2,8 +2,8 @@
 $(document).ready(function () {
 
     var odata = $.odata("http://localhost:32751/services/AdventureWorks.svc/"),
-    //prods = odata.from("Products").select('ProductID,Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,ThumbNailPhoto').top(100);
-        prods = odata.from("Products").select('ProductID,Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,ThumbNailPhoto');
+        prods = odata.from("Products").select('ProductID,Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,ThumbNailPhoto').top(10);
+        //prods = odata.from("Products").select('ProductID,Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,ThumbNailPhoto');
 
     prods.query(function (res) {
         var thead, tbody, obj, col, odd = false, tr, cols = [], data;

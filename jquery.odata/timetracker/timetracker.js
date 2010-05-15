@@ -1,5 +1,5 @@
 ﻿/// <reference path="../script/jquery-1.4.2.js" />
-/// <reference path="../script/jquery.odata.js" />
+/// <reference path="../script/jquery.odata-0.2.js" />
 $(document).ready(function () {
     var odata = $.odata("/services/TimeTracker.svc"),
         bindTable,

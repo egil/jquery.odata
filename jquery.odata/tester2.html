@@ -3,27 +3,45 @@
 <head>
     <title>jQuery OData Testing Ground v2</title>
     <script src="script/jquery-1.4.2.js" type="text/javascript"></script>
-    <script src="script/jquery.odata.js" type="text/javascript"></script>
+    <script src="script/jquery.odata-0.2.js" type="text/javascript"></script>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript">
         $(document).ready(function () {
-            $.ajax({
-                beforeSend: function (xhr) {
-                    // note: this function is not called when dataType = jsonp
+            // Build OData query  
+            var query = "http://odata.netflix.com/Catalog" // netflix base url  
+                + "/Titles" // top-level resource  
+                + "?$filter=substringof('Black',Name)"  // filter by movie name  
+                + "&$callbackcallback=callback" // jsonp request  
+                + "&$format=json"; // json request  
 
-                    // Tell service we understand DataServiceVersion 2.0
-                    xhr.setRequestHeader('MaxDataServiceVersion', '2.0');
-                    xhr.setRequestHeader('DataServiceVersion', '1.0');
-                    xhr.setRequestHeader('If-Match', '*');
-                    xhr.setRequestHeader('X-HTTP-Method', "DELETE");                    
-                },
-                url: "http://localhost:32751/services/TimeTracker.svc/Items(42)",
-                type: 'POST',
-                success: function(a,b,c){
-                    alert('tada');
-                }
-            });
+            query = "http://odata.netflix.com/Catalog/Titles?$format=json";
+            query = "http://odata.netflix.com/Catalog/Titles/$count?$callback=callback&$format=json";
+            query = "http://odata.netflix.com/Catalog/Titles/$count";
 
+                        $.odata("http://odata.netflix.com", { dataType: 'jsonp' })
+                                        .from('Catalog/Titles')
+                                        .query(function (res) {
+                                            console.log(res);
+                                        });
+
+
+//            // Make JSONP call to Netflix  
+//            $.ajax({
+//                dataType: "jsonp",
+//                url: query,
+//                jsonpCallback: "callback",
+//                success: callback,
+//                complete: function (a, b, c) {
+//                    console.log('comp');
+//                },
+//                error: function (a, b, c) {
+//                    console.log('err');
+//                }
+//            });
+
+//            function callback(res) {
+//                console.log(res);
+//            };
 
         });
 

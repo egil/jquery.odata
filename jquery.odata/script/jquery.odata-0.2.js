@@ -31,6 +31,7 @@
             root: null,
             value: false,
             options: {
+                callback: null,
                 expand: null,
                 filter: null,
                 inlinecount: false,
@@ -255,14 +256,11 @@
                             }
                             break;
                         case 'format':
-                            //  // specify $format=json in url if retriving json, i.e. not $count or $value.
-                            //  if (opt[p] === 'json' && !uriSegs.count && !uriSegs.value) {
-                            //      if (needAmpersand) {
-                            //          qopts += '&';
-                            //      }
-                            //      qopts += "$format=json";
-                            //  }
-                            //  break;
+                            // specify $format=json in url if retriving json, i.e. not $count or $value.
+                            if (opt[p] === 'json' && (uriSegs.count || uriSegs.value)) {
+                                break;
+                            }
+                        case 'callback':
                         case 'orderby':
                         case 'top':
                         case 'skip':
@@ -317,6 +315,7 @@
         // be added to the query string options.
         if (that.settings.dataType !== undefined && that.settings.dataType === 'jsonp') {
             that.uri.segments.options.format = 'json';
+            that.uri.segments.options.callback = 'resultCallback';
         }
 
         that.from = function (resourcePath) {
@@ -743,17 +742,21 @@
         var that = {};
 
         that.data = data.d === undefined ? data : data.d;
-        that.version = xhr.getResponseHeader("DataServiceVersion").replace(';', '');
-        that.ETag = xhr.getResponseHeader("ETag");
-        that.status = xhr.status;
-        that.statusText = xhr.statusText;
+        if (xhr !== undefined) {
+            that.version = xhr.getResponseHeader("DataServiceVersion").replace(';', '');
+            that.ETag = xhr.getResponseHeader("ETag");
+            that.status = xhr.status;
+            that.statusText = xhr.statusText;
+        }
         that.query = query;
 
         return that;
     };
 
     serviceCall = function (query, options) {
-        var settings,
+        var resultCallback,
+            dataFilter,
+            settings,
             defaults = {
                 contentType: 'application/json',
                 dataType: 'json',
@@ -790,6 +793,39 @@
             settings.dataType = '*/*';
         }
 
+        // handle jsonp properly
+        if (settings.dataType === 'jsonp') {
+            settings.jsonpCallback = "resultCallback";
+        }
+
+        // define callback function on results. 
+        resultCallback = function (data, textStatus, xhr) {
+            if ($.isFunction(settings.success)) {
+                settings.success(odataQueryResult(data, xhr, query), textStatus, xhr);
+            }
+        };
+
+        dataFilter = function (data, type) {
+            if (type === 'json' || type === 'jsonp') {
+                data = JSON.parse(data, function (key, value) {
+                    var dateTimeParts, date;
+                    if (value !== null) {
+                        if (value.toString().indexOf('Date') !== -1) {
+                            // "\/Date(<ticks>["+" | "-" <offset>)\/"
+                            dateTimeParts = /^\/Date\((-?\d+)([\-|+]\d+)?\)\/$/.exec(value);
+                            if (dateTimeParts) {
+                                // consider doing something with the offset part.
+                                date = new Date(parseInt(dateTimeParts[1], 10));
+                                return date;
+                            }
+                        }
+                        return value;
+                    }
+                });
+            }
+            return data;
+        };
+
         $.ajax({
             beforeSend: function (xhr) {
                 // note: this function is not called when dataType = jsonp
@@ -799,7 +835,7 @@
 
                 // DataServiceVersion must be 2.0 if using
                 // $count, $inlinecount or $select query options
-                if (query.uriParts.count || query.uriParts.options.inlinecount || query.uriParts.options.select !== undefined) {
+                if (query.uri.segments.count || query.uri.segments.options.inlinecount || query.uri.segments.options.select !== undefined) {
                     xhr.setRequestHeader('DataServiceVersion', '2.0');
                 }
                 else {
@@ -820,26 +856,7 @@
                     settings.beforeSend(xhr);
                 }
             },
-            dataFilter: function (data, type) {
-                if (type === 'json' || type === 'jsonps') {
-                    data = JSON.parse(data, function (key, value) {
-                        var dateTimeParts, date;
-                        if (value !== null) {
-                            if (value.toString().indexOf('Date') !== -1) {
-                                // "\/Date(<ticks>["+" | "-" <offset>)\/"
-                                dateTimeParts = /^\/Date\((-?\d+)([\-|+]\d+)?\)\/$/.exec(value);
-                                if (dateTimeParts) {
-                                    // consider doing something with the offset part.
-                                    date = new Date(parseInt(dateTimeParts[1], 10));
-                                    return date;
-                                }
-                            }
-                            return value;
-                        }
-                    });
-                }
-                return data;
-            },
+            dataFilter: dataFilter,
             data: settings.data,
             dataType: settings.dataType,
             contentType: settings.contentType,
@@ -847,13 +864,10 @@
             username: settings.username,
             timeout: settings.timeout,
             type: settings.actualType,
+            jsonpCallback: settings.jsonpCallback,
             processData: false,
             url: query.uri.toString(),
-            success: function (data, textStatus, xhr) {
-                if ($.isFunction(settings.success)) {
-                    settings.success(odataQueryResult(data, xhr, query), textStatus, xhr);
-                }
-            },
+            success: resultCallback,
             complete: settings.complete,
             error: settings.error
         });
