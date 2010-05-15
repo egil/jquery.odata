@@ -25,6 +25,7 @@ var odataUri = function () {
         options: {
             expand: null,
             filter: null,
+            format: null,
             inlinecount: false,
             orderby: null,
             params: null,

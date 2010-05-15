@@ -3,7 +3,7 @@
 <head>
     <title>jQuery.OData Unittests</title>
     <script type="text/javascript" src="../script/jquery-1.4.2.js"></script>
-    <script type="text/javascript" src="../script/jquery.odata.js"></script>
+    <script type="text/javascript" src="../script/jquery.odata-0.2.js"></script>
     <link rel="stylesheet" href="css/qunit.css" type="text/css" media="screen" />
     <script type="text/javascript" src="script/qunit.js"></script>
     <script type="text/javascript">
@@ -78,7 +78,7 @@
                 equals(q.uri, "http://localhost:32751/services/AdventureWorks.svc/GetProductsByColor(706)/ProductNumber/$value?color='red'");
 
                 q = odata.from("GetProductsByColor").params({ color: "'red'" }).orderby("Name");
-                equals(q.uri, "http://localhost:32751/services/AdventureWorks.svc/GetProductsByColor?color='red'&$orderby=Name");
+                equals(q.uri, "http://localhost:32751/services/AdventureWorks.svc/GetProductsByColor?$orderby=Name&color='red'");
             });
 
             test("Query String Options", function () {

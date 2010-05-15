@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="regex notes.txt" />
+    <Content Include="script\jquery.odata-0.2.js" />
     <Content Include="script\jquery.odata.min.js" />
     <Content Include="script\odata.uri.js" />
     <None Include="Service References\ODataOrgDemoServiceReference\Reference.datasvcmap">
@@ -80,7 +81,7 @@
     <Content Include="tester.js" />
     <Content Include="script\jquery-1.4.2-vsdoc.js" />
     <Content Include="script\jquery-1.4.2.js" />
-    <Content Include="script\jquery.odata.js" />
+    <Content Include="script\jquery.odata-0.1.js" />
     <None Include="Service References\AdventureWorksServiceReference\Reference.datasvcmap">
       <Generator>DataServiceClientGenerator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
