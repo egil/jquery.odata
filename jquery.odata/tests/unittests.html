@@ -3,7 +3,7 @@
 <head>
     <title>jQuery.OData Unittests</title>
     <script type="text/javascript" src="../script/jquery-1.4.2.js"></script>
-    <script type="text/javascript" src="../script/jquery.odata-0.2.js"></script>
+    <script type="text/javascript" src="../script/jquery.odata.min-0.2.js"></script>
     <link rel="stylesheet" href="css/qunit.css" type="text/css" media="screen" />
     <script type="text/javascript" src="script/qunit.js"></script>
     <script type="text/javascript">
@@ -27,7 +27,7 @@
                     root: 'http://services.odata.org/OData/OData.svc',
                     resource: 'Products'
                 }, { dataType: 'jsonp' });
-                equals(odata.uri, "http://services.odata.org/OData/OData.svc/Products?$format=json");
+                equals(odata.uri, "http://services.odata.org/OData/OData.svc/Products?$callback=resultCallback&$format=json");
             });
 
             test("Addressing Entries", function () {

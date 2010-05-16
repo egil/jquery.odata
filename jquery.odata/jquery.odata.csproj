@@ -59,7 +59,7 @@
   <ItemGroup>
     <Content Include="regex notes.txt" />
     <Content Include="script\jquery.odata-0.2.js" />
-    <Content Include="script\jquery.odata.min.js" />
+    <Content Include="script\jquery.odata.min-0.2.js" />
     <Content Include="script\odata.uri.js" />
     <None Include="Service References\ODataOrgDemoServiceReference\Reference.datasvcmap">
       <Generator>DataServiceClientGenerator</Generator>
