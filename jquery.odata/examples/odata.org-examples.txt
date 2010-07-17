@@ -1,0 +1,146 @@
+﻿This tutorial will mirror the examples on the "OData: URI Conventions":http://www.odata.org/developers/protocols/uri-conventions page. As a result of that there will be a lot of copy/pasting from that page which I hope is OK with the OData team.
+
+First we define our the service root URI for the service we are going to use. Since we are morroring the examples on the "OData: URI Conventions":http://www.odata.org/developers/protocols/uri-conventions page we will use http://services.odata.org/OData/OData.svc as our argument. 
+
+Please note that if using the code below from your own computer you should specify JSONP as the dataType (@{ dataType = 'JSONP' }@), and that some of the functionality demonstrated below will not work over JSONP.
+
+To get the full functionlity, use a web service local to your site.
+
+h2. Create the OData Object
+
+Create a new odata object that points at the 
+http://services.odata.org/OData/OData.svc odata service
+
+bc. var odata = $.odata('http://services.odata.org/OData/OData.svc');
+
+h2. Specifying the Resource Path through the @from@ method
+
+h3. Addressing Entries
+
+*Get all Categories.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories
+odata.from('Categories')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Get a single Category Entry with key value 1.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories(1)
+odata.from('Categories(1)')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Get the Name property of the Categories Entry with key value 1.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories(1)/Name
+odata.from('Categories(1)/Name')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Get the collection of Products associated with Category Entry with key value 1.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories(1)/Products
+odata.from('Categories(1)/Products')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Get the number of Product Entries associated with Category 1.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories(1)/Products/$count
+odata.from('Categories(1)/Products')
+    .count(function(result){
+        // do interesting things with result
+    });
+
+*Get the City of the Supplier for Product 1 which is associated with Category 1.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories(1)/Products(1)/Supplier/Address/City
+odata.from('Categories(1)/Products(1)/Supplier/Address/City')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Get the "raw value" of the City property.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories(1)/Products(1)/Supplier/Address/City/$value
+odata.from('Categories(1)/Products(1)/Supplier/Address/City')
+    .value(function(result){
+        // do interesting things with result
+    });
+
+h3. Addressing Links Between Entries
+
+*Get the set of Products related to Category 1.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Categories(1)/$links/Products
+odata.from('Categories(1)')
+    .links('Products')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Get the Category related to Product 1.*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/Products(1)/$links/Category
+odata.from('Products(1)')
+    .links('Category')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+h3. Addressing Service Operations
+
+*Queries the ProductByColor Service Operation and passes it a single string parameter*. Since Service Operations are just functions, their semantics are up to the implementer of the function. In this case the Service Operation returns all the red Products.
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/ProductsByColor?color='red'
+odata.from('ProductsByColor')
+    .params({ color: "'red'" })
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Queries the same function as the example above*; however, since the function returns a collection of Entries (here, Products) it acts as a pseudo Collection in that additional path segments may follow identifying Entries or Links from the Entries within the pseudo Collection identified by the Service Operation. In this case, the result of the function is treated as a Collection of Entries, as described by the prior Addressing Entries section.
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/ProductsByColor(3)/Category/Name?color='red'
+odata.from('ProductsByColor(3)/Category/Name')
+    .params({ color: "'red'" })
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Queries the same function as the example above, this time with two arguments*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/ProductsByColor?color='red'&param=foo
+odata.from('ProductsByColor')
+    .params({ color: "'red'", param = foo })
+    .query(function(result){
+        // do interesting things with result
+    });
+
+*Queries the ProductColors Service Operation that accepts no parameters*
+
+bc. // Target URI: http://services.odata.org/OData/OData.svc/ProductColors
+odata.from('ProductColors')
+    .query(function(result){
+        // do interesting things with result
+    });
+
+h2. Query String Options
+
+h2. OData Query Result Object
+
+All odata queries (.query(..), .count(..), etc.) returns the following odata query result object along with the ussual textStatus and XMLHttpRequest known from @jQuery.ajax@ functions @success@ argument.
+
+bc. {
+    ETag: null,       // null or ETag returned in the result header
+    data: ...,        // data returned in the query
+    query: ...,       // the odata query that initiated the query
+    status: 200,      // the HTTP status code in the result header
+    statusText: "OK", // the HTTP status text in the result header
+    version: "1.0"    // the DataServiceVersion in the result header
+}

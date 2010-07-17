@@ -57,6 +57,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="examples\odata.org-examples.txt" />
     <Content Include="regex notes.txt" />
     <Content Include="script\jquery.odata-0.2.js" />
     <Content Include="script\jquery.odata.min-0.2.js" />

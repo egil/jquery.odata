@@ -9,20 +9,20 @@
 
     odataUri = function (uriSegments) {
         var that,
-        uri,
-        segments,
-        stringify,
-        parse,
-        // trims slashes away from begining and end of string.
-        trimSlashes = function (str) {
-            return str.replace(/^\/+|\/+$/g, '');
-        },
-        // trims slashes away from the end of the string.
-        trimRightSlashes = function (str) {
-            return str.replace(/\/+$/g, '');
-        },
-        // use buildin String.trim function if one is available, otherwise use jQuery.trim.
-        trim = typeof String.trim === 'function' ? String.trim : jQuery.trim;
+            uri,
+            segments,
+            stringify,
+            parse,
+            // trims slashes away from begining and end of string.
+            trimSlashes = function (str) {
+                return str.replace(/^\/+|\/+$/g, '');
+            },
+            // trims slashes away from the end of the string.
+            trimRightSlashes = function (str) {
+                return str.replace(/\/+$/g, '');
+            },
+            // use buildin String.trim function if one is available, otherwise use jQuery.trim.
+            trim = typeof String.trim === 'function' ? String.trim : jQuery.trim;
 
         segments = {
             count: false,

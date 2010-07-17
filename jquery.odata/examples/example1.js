@@ -1,9 +1,3 @@
-// future improvments ... ideas
-// many use $metadata to do some kind of scaffolding
-// is this even nessesary with jquery, do we gain anything from
-// $metadata that we can use in javascript?
-
-
 // create odata object
 // first argument is the "service root URI"
 // $.odata(serviceRootURI)

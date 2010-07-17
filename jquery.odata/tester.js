@@ -1,7 +1,7 @@
 ﻿/// <reference path="script/jquery-1.4.2.js" />
 $(document).ready(function () {
 
-    var odata = $.odata("http://localhost:32751/services/AdventureWorks.svc/"),
+    var odata = $.odata("/services/AdventureWorks.svc/"),
         prods = odata.from("Products").select('ProductID,Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,ThumbNailPhoto').top(10);
         //prods = odata.from("Products").select('ProductID,Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,ThumbNailPhoto');
 
