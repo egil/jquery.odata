@@ -1,4 +1,4 @@
-﻿/// <reference path="jquery-1.4.2.js" />
+﻿/// <reference path="jquery-1.6.1.js" />
 "use strict";
 (function ($) {
     var odata,

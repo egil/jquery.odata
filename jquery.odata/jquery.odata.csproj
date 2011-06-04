@@ -13,6 +13,7 @@
     <RootNamespace>jquery.odata</RootNamespace>
     <AssemblyName>jquery.odata</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <UseIISExpress>false</UseIISExpress>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -59,8 +60,13 @@
   <ItemGroup>
     <Content Include="examples\odata.org-examples.txt" />
     <Content Include="regex notes.txt" />
+    <Content Include="script\jquery-1.6.1-vsdoc.js" />
+    <Content Include="script\jquery-1.6.1.js" />
+    <Content Include="script\jquery-1.6.1.min.js" />
     <Content Include="script\jquery.odata-0.2.js" />
-    <Content Include="script\jquery.odata.min-0.2.js" />
+    <Content Include="script\jquery.odata-0.2.min.js" />
+    <Content Include="script\jQuery.tmpl.js" />
+    <Content Include="script\jQuery.tmpl.min.js" />
     <Content Include="script\odata.uri.js" />
     <None Include="Service References\ODataOrgDemoServiceReference\Reference.datasvcmap">
       <Generator>DataServiceClientGenerator</Generator>
@@ -74,14 +80,11 @@
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
     <Content Include="script\date.format.js" />
-    <Content Include="script\jquery.tmpl.js" />
     <Content Include="script\json2.js" />
     <Content Include="services\TimeTracker.edmx.sql" />
     <Content Include="services\TimeTracker.svc" />
     <Content Include="style.css" />
     <Content Include="tester.js" />
-    <Content Include="script\jquery-1.4.2-vsdoc.js" />
-    <Content Include="script\jquery-1.4.2.js" />
     <Content Include="script\jquery.odata-0.1.js" />
     <None Include="Service References\AdventureWorksServiceReference\Reference.datasvcmap">
       <Generator>DataServiceClientGenerator</Generator>
