@@ -1,4 +1,4 @@
-﻿/// <reference path="jquery-1.4.2.js" />
+﻿/// <reference path="jquery-1.6.1.js" />
 "use strict";
 (function ($) {
     var odata,
@@ -381,7 +381,7 @@
             // allow users to pass in just a callback 
             // function in case of success.
             if ($.isFunction(options)) {
-                options = { success: options };
+                options = { complete: options };
             }
 
             // look for etag in entry.__metadata.
@@ -423,7 +423,7 @@
             // allow users to pass in just a callback 
             // function in case of success.
             if ($.isFunction(options)) {
-                options = { success: options };
+                options = { complete: options };
             }
 
             // look for etag in entry.__metadata.
@@ -459,7 +459,6 @@
             } else if (typeof entry === 'string') {
                 that.uri = that.uri.parse(entry);
             }
-
             serviceCall(that, settings);
         };
 
@@ -755,7 +754,6 @@
 
     serviceCall = function (query, options) {
         var resultCallback,
-            dataFilter,
             settings,
             defaults = {
                 contentType: 'application/json',
@@ -782,21 +780,28 @@
             } else if (query.uri.count) {
                 settings.dataType = 'text';
             }
-        } else if (settings.type === "PUT" || settings.type === "DELETE" || settings.type === "MERGE") {
-            // we need to set dataType = '*/*' since we do not expect any data
-            // back from the server. If we do not specify */*, dataFilter 
-            // and JSON.parse will try to parse the data and fail
-            settings.dataType = '*/*';
-        }
+        } 
+        
+// Removed dataFilter
+//        else if (settings.type === "PUT" || settings.type === "DELETE" || settings.type === "MERGE") {
+//            // we need to set dataType = '*/*' since we do not expect any data
+//            // back from the server. If we do not specify */*, dataFilter 
+//            // and JSON.parse will try to parse the data and fail
+//            settings.dataType = '*/*';
+//        }
 
-        if (settings.type === "DELETE") {
-            settings.dataType = '*/*';
-        }
+//        if (settings.type === "DELETE") {
+//            settings.dataType = '*/*';
+//        }
 
         // handle jsonp properly
         if (settings.dataType === 'jsonp') {
             settings.jsonpCallback = "resultCallback";
         }
+
+        // The success callback won't be called for 204 responses from
+        // DELETE, PUT, or MERGE so we need to create both a success and
+        // complete callback
 
         // define callback function on results. 
         resultCallback = function (data, textStatus, xhr) {
@@ -805,26 +810,32 @@
             }
         };
 
-        dataFilter = function (data, type) {
-            if (type === 'json' || type === 'jsonp') {
-                data = JSON.parse(data, function (key, value) {
-                    var dateTimeParts, date;
-                    if (value !== null) {
-                        if (value.toString().indexOf('Date') !== -1) {
-                            // "\/Date(<ticks>["+" | "-" <offset>)\/"
-                            dateTimeParts = /^\/Date\((-?\d+)([\-|+]\d+)?\)\/$/.exec(value);
-                            if (dateTimeParts) {
-                                // consider doing something with the offset part.
-                                date = new Date(parseInt(dateTimeParts[1], 10));
-                                return date;
-                            }
-                        }
-                        return value;
-                    }
-                });
-            }
-            return data;
-        };
+
+
+        // Don't use dataFilter with JSON, use converters instead:
+        // http://forum.jquery.com/topic/datafilter-function-and-json-string-result-problems
+        // See timetracker/timetracker.js for an example
+
+//        dataFilter = function (data, type) {
+//            if (type === 'json' || type === 'jsonp') {
+//                data = JSON.parse(data, function (key, value) {
+//                    var dateTimeParts, date;
+//                    if (value !== null) {
+//                        if (value.toString().indexOf('Date') !== -1) {
+//                            // "\/Date(<ticks>["+" | "-" <offset>)\/"
+//                            dateTimeParts = /^\/Date\((-?\d+)([\-|+]\d+)?\)\/$/.exec(value);
+//                            if (dateTimeParts) {
+//                                // consider doing something with the offset part.
+//                                date = new Date(parseInt(dateTimeParts[1], 10));
+//                                return date;
+//                            }
+//                        }
+//                        return value;
+//                    }
+//                });
+//            }
+//            return data;
+//        };
 
         $.ajax({
             beforeSend: function (xhr) {
@@ -856,7 +867,7 @@
                     settings.beforeSend(xhr);
                 }
             },
-            dataFilter: dataFilter,
+            //dataFilter: dataFilter,
             data: settings.data,
             dataType: settings.dataType,
             contentType: settings.contentType,
