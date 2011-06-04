@@ -1,6 +1,35 @@
-﻿/// <reference path="../script/jquery-1.4.2.js" />
+﻿/// <reference path="../script/jquery-1.6.1.js" />
 /// <reference path="../script/jquery.odata-0.2.js" />
+/// <reference path="../script/jQuery.tmpl.js" />
+
 $(document).ready(function () {
+
+    // Setup global converter for dates
+    // For an alternative approach see http://codepaste.net/i89xhc
+    $.ajaxSetup({
+        converters: { "text json": function (jsonString) {
+            return JSON.parse(jsonString, function (key, value) {
+                var dateTimeParts, date;
+                if (value !== null) {
+                    if (value.toString().indexOf('Date') !== -1) {
+                        // "\/Date(<ticks>["+" | "-" <offset>)\/"
+                        dateTimeParts = /^\/Date\((-?\d+)([\-|+]\d+)?\)\/$/.exec(value);
+                        if (dateTimeParts) {
+                            // consider doing something with the offset part.
+                            date = new Date(parseInt(dateTimeParts[1], 10));
+                            return date;
+                        }
+                    }
+                    return value;
+                }
+            });
+
+
+        }
+        }
+    });
+
+
     var odata = $.odata("/services/TimeTracker.svc"),
         bindTable,
         addContentToTable;
@@ -20,33 +49,30 @@ $(document).ready(function () {
     });
 
     $('tbody#content input[type=checkbox]').live('click', function () {
-        var tmp,
-            item = $(this) // cb
-                    .parent() // td
-                    .parent() // tr
-                    .data('entry');
-
+        var item = $(this).tmplItem().data;
         item.IsDone = this.checked;
         item.FinishedOn = item.IsDone ? new Date() : null;
-        tmp = { IsDone: item.IsDone, FinishedOn: item.FinishedOn };
+
+        var tmp = { IsDone: item.IsDone, FinishedOn: item.FinishedOn };
 
         // partial update
         odata.update('Items(' + item.ItemId + ')', tmp, {
             etag: item.__metadata.etag,
-            success: function (res) {
+            complete: function (res) {
                 bindTable();
             }
         });
     });
 
     $('tbody#content input[name=delete]').live('click', function () {
-        var item = $(this) // cb
+        var row = $(this) // cb
                     .parent() // td
-                    .parent(), // tr
-            entry = item.data('entry');
+                    .parent(); // tr
+        
+        var entry = $(this).tmplItem().data;
 
-        odata.remove(entry, function(){
-            item.remove();
+        odata.remove(entry, function () {
+            row.remove();
         })
     });
 
@@ -67,21 +93,21 @@ $(document).ready(function () {
 
     bindTable = function () {
         odata.from("Items").orderby("CreatedOn desc").expand("Category,User").query(function (res) {
-            $('tbody#content').html('');
-            addContentToTable(res.data);
+            $('tbody#content').empty();
+            $("#content-tmpl").tmpl(res.data).appendTo('tbody#content');
         });
     };
 
-    addContentToTable = function (data) {
-        $('tbody#content').append('#content-tmpl', data, {
-            rendering: function (context, dom) {
-                context.dataItem.FinishedOn = context.dataItem.FinishedOn || null;
-            },
-            rendered: function (context, dom) {
-                $(dom).data('entry', context.dataItem);
-            }
-        });
-    };
+    //    addContentToTable = function (data) {
+    //        $('tbody#content').append('#content-tmpl', data, {
+    //            rendering: function (context, dom) {
+    //                context.dataItem.FinishedOn = context.dataItem.FinishedOn || null;
+    //            },
+    //            rendered: function (context, dom) {
+    //                $(dom).data('entry', context.dataItem);
+    //            }
+    //        });
+    //    };
 
     bindTable();
 });
